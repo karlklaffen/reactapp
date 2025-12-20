@@ -1,0 +1,30 @@
+#cross-parent {
+    background-color: black;
+    display: grid;
+    width: calc(100vw - 15px);
+    /* height: 640px; */
+}
+
+.cell {
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    border-width: 1px;
+    border-color: black;
+    border-style: solid;
+    font-family: monospace; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.letter {
+    font-size: 5vw;
+    position: absolute;
+}
+
+.num {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}
