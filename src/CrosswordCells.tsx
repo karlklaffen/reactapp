@@ -4,7 +4,8 @@ import {isLetterKey} from "./Utils.tsx"
 import {WordHead, CellPos, CellData, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, getCellHeadNumber, gridClickCallback} from "./CrosswordUtils"
 
 function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
-    const [selectedCellDataIndex, setSelectedCellDataIndex] = useState<number | null>(0);
+    const [selectedCellDataIndex, setSelectedCellDataIndex] = useState<number | null>(null);
+    // console.log(selectedCellDataIndex);
 
     let cellPoses: Array<CellPos> = getAllCellPoses(heads);
     
@@ -12,6 +13,7 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
     const [cellLetters, setCellLetters] = useState<Array<string>>(defaultVals);
     
     useEffect(() => {
+        console.log('keyCallback');
         const keyCallback = (e: any) => {
 
             if (!isLetterKey(e.key))
@@ -21,16 +23,17 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
 
             if (selectedCellDataIndex != null) {
 
-                const newCellLetters: Array<string> = cellLetters.map((c, i) => {
-                    if (i == selectedCellDataIndex) {
-                        console.log(letter);
-                        return letter;
-                    }
-                    return c;
-                });
-
-                setCellLetters(newCellLetters);
-                
+                setCellLetters((curLetters: Array<string>) => {
+                    const newCellLetters: Array<string> = curLetters.map((c, i) => {
+                        if (i == selectedCellDataIndex) {
+                            console.log(letter, selectedCellDataIndex);
+                            setSelectedCellDataIndex(selectedCellDataIndex + 1);
+                            return letter;
+                        }
+                        return c;
+                    });
+                    return newCellLetters;
+                })
             }
         }
 
@@ -64,11 +67,7 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
         // console.log(headNum);
 
         const gridClickFunc = () => {
-
             setSelectedCellDataIndex(i);
-            // console.log(i);
-            // console.log(selectedCellDataIndex);
-            // gridClickCallback(cellPos);
         }
 
         let selected = (selectedCellDataIndex == i);
@@ -91,6 +90,8 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
     const parentStyle = {
       gridTemplateAreas: gridTemplateAreaStrs.join(' '),
     };
+
+    console.log('rerendered')
 
     return (<div id='cross-parent' style={parentStyle}>
       {elements}

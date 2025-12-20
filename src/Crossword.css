@@ -2,6 +2,7 @@
     background-color: black;
     display: grid;
     width: calc(100vw - 15px);
+    /* max-height: 100vh; */
     /* height: 640px; */
 }
 
@@ -11,7 +12,7 @@
     border-width: 1px;
     border-color: black;
     border-style: solid;
-    font-family: monospace; 
+    /* font-family: monospace;  */
     display: flex;
     justify-content: center;
     align-items: center;
