@@ -64,7 +64,7 @@ export class WordHead {
         if (!this.right && cellPos.col == this.startPos.col && cellPos.row >= this.startPos.row) {
             offset = cellPos.row - this.startPos.row;
         }
-        
+
         if (offset >= 0 && offset < this.word.length)
             return offset;
         return null;
@@ -79,6 +79,10 @@ export class SelectedCellInfo {
     constructor(headIndex: number, offset: number) {
         this.headIndex = headIndex;
         this.offset = offset;
+    }
+
+    isSameAs(otherInfo: SelectedCellInfo): boolean {
+        return this.headIndex == otherInfo.headIndex && this.offset == otherInfo.offset;
     }
 }
 
@@ -208,16 +212,49 @@ export function getTotalRowsCols(poses: Array<CellPos>): CellPos {
     return new CellPos(numRows, numCols);
 }
 
-export function getPossibleSelectedCellInfoForCellPos(heads: Array<WordHead>, cellPos: CellPos): SelectedCellInfo | null {
+export function getOtherPossibleSelectedCellInfosForCellPos(heads: Array<WordHead>, cellPos: CellPos, curSelectedCellInfo: SelectedCellInfo): Array<SelectedCellInfo> {
+    let infos: Array<SelectedCellInfo> = [];
     for (let i = 0; i < heads.length; i++) {
         let offsetNum: number | null = heads[i].getOffsetNum(cellPos);
 
-        if (offsetNum != null)
-            return new SelectedCellInfo(i, offsetNum);
+        if (offsetNum != null) {
+            let thisInfo: SelectedCellInfo = new SelectedCellInfo(i, offsetNum);
+            if (!thisInfo.isSameAs(curSelectedCellInfo))
+                infos.push(thisInfo);
+        }
     }
-    return null;
+
+    return infos;
 }
 
-export function cellPosIsSameAsSelectedCell(cellPos: CellPos, heads: Array<WordHead>, selectedCellInfo: SelectedCellInfo) {
+export function cellPosIsSameAsSelectedCell(cellPos: CellPos, heads: Array<WordHead>, selectedCellInfo: SelectedCellInfo): boolean{
     return cellPos.isSameAs(heads[selectedCellInfo.headIndex].getOffsetPos(selectedCellInfo.offset))
+}
+
+export function getPriorityCellInfoForCellPos(cellPos: CellPos, heads: Array<WordHead>, curSelected: SelectedCellInfo): SelectedCellInfo {
+    // When a cell is clicked:
+    // If cell is already clicked, choose other corresponding word than current if it exists
+    // Otherwise, if cell is a head cell, choose that word
+    // Otherwise, anything is valid
+
+    let otherInfos: Array<SelectedCellInfo> = getOtherPossibleSelectedCellInfosForCellPos(heads, cellPos, curSelected);
+
+    
+
+    if (otherInfos.length == 0)
+        return curSelected;
+
+    for (const otherInfo of otherInfos) {
+        if (otherInfo.offset == 0)
+            return otherInfo;
+    }
+    
+    return otherInfos[0];
+    // else {
+
+    //     let cellAlreadySelected: boolean = cellPosIsSameAsSelectedCell(cellPos, heads, curSelected);
+    //     let cellIsHead: boolean = getCellHeadNumber(heads, cellPos) != 0;
+
+
+    // }
 }

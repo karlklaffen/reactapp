@@ -1,7 +1,7 @@
 import {useState, useEffect, type JSX} from 'react'
 import Cell from "./Cell.tsx"
 import {isLetterKey} from "./Utils.tsx"
-import {WordHead, CellPos, CellData, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, getCellHeadNumber, gridClickCallback, SelectedCellInfo, getPossibleSelectedCellInfoForCellPos, cellPosIsSameAsSelectedCell} from "./CrosswordUtils"
+import {WordHead, CellPos, CellData, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, getCellHeadNumber, gridClickCallback, SelectedCellInfo, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos} from "./CrosswordUtils"
 
 function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
 
@@ -65,11 +65,13 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
         let headNum: number = getCellHeadNumber(heads, cellPos);
 
         const gridClickFunc = () => {
-            let newSelectedCellInfo: SelectedCellInfo | null = getPossibleSelectedCellInfoForCellPos(heads, cellPos);
-            if (newSelectedCellInfo == null)
-                setSelectedCellInfo(new SelectedCellInfo(0, 0));
-            else
-                setSelectedCellInfo(newSelectedCellInfo);
+            
+            setSelectedCellInfo(getPriorityCellInfoForCellPos(cellPos, heads, selectedCellInfo));
+            // if (newSelectedCellInfo == null)
+            //     setSelectedCellInfo(new SelectedCellInfo(0, 0));
+            // else
+            //     setSelectedCellInfo(newSelectedCellInfo);
+            
         }
 
         let selected = cellPosIsSameAsSelectedCell(cellPos, heads, selectedCellInfo);
