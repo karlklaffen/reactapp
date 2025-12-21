@@ -17,6 +17,8 @@ function Crossword({inputFileName}: {inputFileName: string}) {
 
     let wordHeads: Array<WordHead> = parseCrosswordInput(textLines);
 
+    console.log('rerender main');
+
     return (textLines.length == 0 ?
     <p>Loading!</p> :
     <div>

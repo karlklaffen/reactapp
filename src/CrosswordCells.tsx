@@ -1,16 +1,13 @@
 import {useState, useEffect, type JSX} from 'react'
 import Cell from "./Cell.tsx"
 import {isLetterKey} from "./Utils.tsx"
-import {WordHead, CellPos, CellData, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, getCellHeadNumber, gridClickCallback} from "./CrosswordUtils"
+import {WordHead, CellPos, CellData, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, getCellHeadNumber, gridClickCallback, SelectedCellInfo, getPossibleSelectedCellInfoForCellPos, cellPosIsSameAsSelectedCell} from "./CrosswordUtils"
 
 function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
-    const [selectedCellDataIndex, setSelectedCellDataIndex] = useState<number | null>(null);
-    // console.log(selectedCellDataIndex);
 
-    let cellPoses: Array<CellPos> = getAllCellPoses(heads);
-    
-    let defaultVals = Array<string>(cellPoses.length).fill('');
-    const [cellLetters, setCellLetters] = useState<Array<string>>(defaultVals);
+    const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedCellInfo>(new SelectedCellInfo(0, 0));
+
+    const [cellDatas, setCellDatas] = useState<Array<CellData>>(getAllCellData(heads));
     
     useEffect(() => {
         console.log('keyCallback');
@@ -21,20 +18,23 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
 
             const letter: string = e.key.toUpperCase();
 
-            if (selectedCellDataIndex != null) {
-
-                setCellLetters((curLetters: Array<string>) => {
-                    const newCellLetters: Array<string> = curLetters.map((c, i) => {
-                        if (i == selectedCellDataIndex) {
-                            console.log(letter, selectedCellDataIndex);
-                            setSelectedCellDataIndex(selectedCellDataIndex + 1);
-                            return letter;
+            setCellDatas((curDatas: Array<CellData>) => {
+                const newCellDatas: Array<CellData> = curDatas.map((c, i) => {
+                    if (cellPosIsSameAsSelectedCell(c.pos, heads, selectedCellInfo)) {
+                        console.log(letter);
+                        if (selectedCellInfo.offset == heads[selectedCellInfo.headIndex].word.length - 1) {
+                            let nextHeadIndex = (selectedCellInfo.headIndex + 1) % heads.length;
+                            setSelectedCellInfo(new SelectedCellInfo(nextHeadIndex, 0));
                         }
-                        return c;
-                    });
-                    return newCellLetters;
-                })
-            }
+                        else {
+                            setSelectedCellInfo(new SelectedCellInfo(selectedCellInfo.headIndex, selectedCellInfo.offset + 1));
+                        }
+                        return new CellData(c.pos, letter);
+                    }
+                    return c;
+                });
+                return newCellDatas;
+            });
         }
 
         document.addEventListener("keypress", keyCallback)
@@ -42,13 +42,13 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
         return () => {
             document.removeEventListener("keypress", keyCallback);
         }
-    }, [selectedCellDataIndex]);
+    }, [selectedCellInfo]);
 
     let elements: Array<JSX.Element> = []
 
     let gridTemplateAreas: Array<Array<string>> = [];
 
-    let totalRowsCols: CellPos = getTotalRowsCols(cellPoses);
+    let totalRowsCols: CellPos = getTotalRowsCols(getCellPosesFromData(cellDatas));
 
     for (let i = 0; i < totalRowsCols.row; i++) {
       let newRow: Array<string> = []
@@ -58,22 +58,25 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
       gridTemplateAreas.push(newRow);
     }
 
-    for (let i = 0; i < cellPoses.length; i++) {
-        let cellPos = cellPoses[i];
+    for (let i = 0; i < cellDatas.length; i++) {
+        let cellPos = cellDatas[i].pos;
         let idStr: string = cellPos.getCellId();
 
         let headNum: number = getCellHeadNumber(heads, cellPos);
 
-        // console.log(headNum);
-
         const gridClickFunc = () => {
-            setSelectedCellDataIndex(i);
+            let newSelectedCellInfo: SelectedCellInfo | null = getPossibleSelectedCellInfoForCellPos(heads, cellPos);
+            if (newSelectedCellInfo == null)
+                setSelectedCellInfo(new SelectedCellInfo(0, 0));
+            else
+                setSelectedCellInfo(newSelectedCellInfo);
         }
 
-        let selected = (selectedCellDataIndex == i);
+        let selected = cellPosIsSameAsSelectedCell(cellPos, heads, selectedCellInfo);
+        let inSameWord = heads[selectedCellInfo.headIndex].getOffsetNum(cellPos) != null;
 
         let thisElement: JSX.Element = 
-          <Cell letter={cellLetters[i]} idStr={idStr} headNum={headNum} selected={selected} func={gridClickFunc} key={idStr}/>;
+          <Cell letter={cellDatas[i].letter} idStr={idStr} headNum={headNum} selected={selected} inSameWord={inSameWord} func={gridClickFunc} key={idStr}/>;
         
         elements.push(thisElement);
 

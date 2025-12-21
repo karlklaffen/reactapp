@@ -2,11 +2,11 @@ import {CellData} from "./CrosswordUtils"
 
 import {type JSX} from "react"
 
-function Cell({letter, idStr, headNum, selected, func}: {letter: string, idStr: string, headNum: number, selected: boolean, func: () => void}): JSX.Element {
+function Cell({letter, idStr, headNum, selected, inSameWord, func}: {letter: string, idStr: string, headNum: number, selected: boolean, inSameWord: boolean, func: () => void}): JSX.Element {
 
     const cellStyle = {
         gridArea: idStr,
-        backgroundColor: selected ? 'gold' : 'white'
+        backgroundColor: selected ? 'gold' : (inSameWord ? 'lightblue' : 'white')
     };
 
     if (headNum == 0)

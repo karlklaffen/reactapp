@@ -52,8 +52,33 @@ export class WordHead {
 
     getOffsetPos(offset: number): CellPos {
         if (this.right)
-        return new CellPos(this.startPos.row, this.startPos.col + offset);
+            return new CellPos(this.startPos.row, this.startPos.col + offset);
         return new CellPos(this.startPos.row + offset, this.startPos.col);
+    }
+
+    getOffsetNum(cellPos: CellPos): number | null {
+        let offset: number = -1;
+        if (this.right && cellPos.row == this.startPos.row && cellPos.col >= this.startPos.col) {
+            offset = cellPos.col - this.startPos.col;
+        }
+        if (!this.right && cellPos.col == this.startPos.col && cellPos.row >= this.startPos.row) {
+            offset = cellPos.row - this.startPos.row;
+        }
+        
+        if (offset >= 0 && offset < this.word.length)
+            return offset;
+        return null;
+    }
+}
+
+export class SelectedCellInfo {
+
+    headIndex: number;
+    offset: number;
+
+    constructor(headIndex: number, offset: number) {
+        this.headIndex = headIndex;
+        this.offset = offset;
     }
 }
 
@@ -181,4 +206,18 @@ export function getTotalRowsCols(poses: Array<CellPos>): CellPos {
     let numCols = maxCol + 1;
 
     return new CellPos(numRows, numCols);
+}
+
+export function getPossibleSelectedCellInfoForCellPos(heads: Array<WordHead>, cellPos: CellPos): SelectedCellInfo | null {
+    for (let i = 0; i < heads.length; i++) {
+        let offsetNum: number | null = heads[i].getOffsetNum(cellPos);
+
+        if (offsetNum != null)
+            return new SelectedCellInfo(i, offsetNum);
+    }
+    return null;
+}
+
+export function cellPosIsSameAsSelectedCell(cellPos: CellPos, heads: Array<WordHead>, selectedCellInfo: SelectedCellInfo) {
+    return cellPos.isSameAs(heads[selectedCellInfo.headIndex].getOffsetPos(selectedCellInfo.offset))
 }
