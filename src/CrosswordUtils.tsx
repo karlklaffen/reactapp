@@ -87,11 +87,7 @@ export class SelectedCellInfo {
 }
 
 export function gridClickCallback(pos: CellPos) {
-
-    // const [selectedPos, setSelectedPos] = useState(null);
-
-
-
+    
     console.log('click', pos.toString());
 
     let id: string = `c${pos.toString()}`;
@@ -109,25 +105,24 @@ export function getAllCellPoses(heads: Array<WordHead>): Array<CellPos> {
         
         for (let j = 0; j < heads[i].word.length; j++) {
 
-        let thisCellPos: CellPos = heads[i].getOffsetPos(j);
+            let thisCellPos: CellPos = heads[i].getOffsetPos(j);
 
-        let unique: boolean = true;
+            let unique: boolean = true;
 
-        for (const otherCellPos of poses) {
+            for (const otherCellPos of poses) {
 
-            if (thisCellPos.isSameAs(otherCellPos)) {
-            unique = false;
-            break;
+                if (thisCellPos.isSameAs(otherCellPos)) {
+                unique = false;
+                break;
+                }
             }
-        }
 
-        if (unique) {
-            poses.push(thisCellPos);
-        }
+            if (unique) {
+                poses.push(thisCellPos);
+            }
         }
     }
 
-    // console.log('returned', poses);
     return poses;
 }
 
@@ -232,29 +227,25 @@ export function cellPosIsSameAsSelectedCell(cellPos: CellPos, heads: Array<WordH
 }
 
 export function getPriorityCellInfoForCellPos(cellPos: CellPos, heads: Array<WordHead>, curSelected: SelectedCellInfo): SelectedCellInfo {
-    // When a cell is clicked:
-    // If cell is already clicked, choose other corresponding word than current if it exists
-    // Otherwise, if cell is a head cell, choose that word
-    // Otherwise, anything is valid
 
     let otherInfos: Array<SelectedCellInfo> = getOtherPossibleSelectedCellInfosForCellPos(heads, cellPos, curSelected);
 
-    
-
+    // If there are no other possibilities, just use current selection
     if (otherInfos.length == 0)
         return curSelected;
 
+    // Prioritize this word if is same word as previous
+    for (const otherInfo of otherInfos) {
+        if (otherInfo.headIndex == curSelected.headIndex)
+            return otherInfo;
+    }
+
+    // Then, prioritize this word if word head is clicked
     for (const otherInfo of otherInfos) {
         if (otherInfo.offset == 0)
             return otherInfo;
     }
     
+    // Otherwise, just return anything 
     return otherInfos[0];
-    // else {
-
-    //     let cellAlreadySelected: boolean = cellPosIsSameAsSelectedCell(cellPos, heads, curSelected);
-    //     let cellIsHead: boolean = getCellHeadNumber(heads, cellPos) != 0;
-
-
-    // }
 }
