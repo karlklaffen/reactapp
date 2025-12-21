@@ -26,6 +26,8 @@
 
 .num {
     position: absolute;
-    left: 0px;
-    top: 0px;
+    font-size: 2vw;
+    left: 0.1vw;
+    top: 0.1vw;
+    font-weight: bold;
 }
