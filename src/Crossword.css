@@ -6,6 +6,16 @@
     /* height: 640px; */
 }
 
+#clues {
+    padding: 10px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    /* flex-direction: row;
+    /* align-content: space-evenly; */
+    /* justify-content: */
+}
+
 .cell {
     overflow: hidden;
     aspect-ratio: 1 / 1;

@@ -15,11 +15,15 @@ function CrosswordClues({heads}: {heads: Array<WordHead>}): JSX.Element {
     }
 
     return (
-    <div>
-        <p className="header">ACROSS</p>
-        {rights}
-        <p className="header">DOWN</p>
-        {downs}
+    <div id="clues">
+        <div>
+            <p className="header">ACROSS</p>
+            {rights}
+        </div>
+        <div>
+            <p className="header">DOWN</p>
+            {downs}
+        </div>
     </div>
     )
 }
