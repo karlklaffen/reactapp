@@ -36,18 +36,28 @@ export class CellData {
     }
 }
 
+export class WordInfo {
+    word: string;
+    clue: string;
+
+    constructor(word: string, clue: string) {
+        this.word = word;
+        this.clue = clue;
+    }
+}
+
 export class WordHead {
 
     startPos: CellPos;
     right: boolean;
-    word: string;
     id: number;
+    info: WordInfo;
 
-    constructor(startPos: CellPos, right: boolean, word: string, id: number) {
+    constructor(startPos: CellPos, right: boolean, id: number, info: WordInfo) {
         this.startPos = startPos;
         this.right = right;
-        this.word = word;
         this.id = id;
+        this.info = info;
     }
 
     getOffsetPos(offset: number): CellPos {
@@ -65,7 +75,7 @@ export class WordHead {
             offset = cellPos.row - this.startPos.row;
         }
 
-        if (offset >= 0 && offset < this.word.length)
+        if (offset >= 0 && offset < this.info.word.length)
             return offset;
         return null;
     }
@@ -103,7 +113,7 @@ export function getAllCellPoses(heads: Array<WordHead>): Array<CellPos> {
 
     for (let i = 0; i < heads.length; i++) {
         
-        for (let j = 0; j < heads[i].word.length; j++) {
+        for (let j = 0; j < heads[i].info.word.length; j++) {
 
             let thisCellPos: CellPos = heads[i].getOffsetPos(j);
 
@@ -145,41 +155,41 @@ export function getCellHeadNumber(heads: Array<WordHead>, cellPos: CellPos): num
     return 0;
 }
 
-export function parseCrosswordInput(inputLines: Array<string>): Array<WordHead> {
-  let heads: Array<WordHead> = [];
+// export function parseCrosswordInput(inputLines: Array<string>): Array<WordHead> {
+//   let heads: Array<WordHead> = [];
 
-  let nextId: number = 1;
+//   let nextId: number = 1;
 
-  for (const line of inputLines) {
-    let parts: Array<string> = line.split(' ');
+//   for (const line of inputLines) {
+//     let parts: Array<string> = line.split(' ');
 
-    let row: number = parseInt(parts[0]);
-    let col: number = parseInt(parts[1]);
-    let right: boolean = parts[2] == 'R'
-    let word: string = parts[3];
+//     let row: number = parseInt(parts[0]);
+//     let col: number = parseInt(parts[1]);
+//     let right: boolean = parts[2] == 'R'
+//     let word: string = parts[3];
 
-    let thisCellPos: CellPos = new CellPos(row, col);
+//     let thisCellPos: CellPos = new CellPos(row, col);
 
-    let idToUse = nextId;
+//     let idToUse = nextId;
 
-    let unique: boolean = true;
+//     let unique: boolean = true;
 
-    for (const head of heads) {
-      if (head.startPos.isSameAs(thisCellPos)) {
-        idToUse = head.id;
-        unique = false;
-        break;
-      }
-    }
+//     for (const head of heads) {
+//       if (head.startPos.isSameAs(thisCellPos)) {
+//         idToUse = head.id;
+//         unique = false;
+//         break;
+//       }
+//     }
 
-    heads.push(new WordHead(new CellPos(row, col), right, word, idToUse));
+//     heads.push(new WordHead(new CellPos(row, col), right, word, idToUse));
 
-    if (unique)
-      nextId++;
-  }
+//     if (unique)
+//       nextId++;
+//   }
 
-  return heads;
-}
+//   return heads;
+// }
 
 export function getCellPosesFromData(data: Array<CellData>): Array<CellPos> {
     let poses: Array<CellPos> = [];
@@ -248,4 +258,26 @@ export function getPriorityCellInfoForCellPos(cellPos: CellPos, heads: Array<Wor
     
     // Otherwise, just return anything 
     return otherInfos[0];
+}
+
+export function getIncrementedOrDecrementedSelectedCell(increment: boolean, selectedCellInfo: SelectedCellInfo, heads: Array<WordHead>) {
+    
+    if (increment) {
+        if (selectedCellInfo.offset == heads[selectedCellInfo.headIndex].info.word.length - 1) {
+            let nextHeadIndex = (selectedCellInfo.headIndex + 1) % heads.length;
+            return new SelectedCellInfo(nextHeadIndex, 0);
+        }
+        else {
+            return new SelectedCellInfo(selectedCellInfo.headIndex, selectedCellInfo.offset + 1);
+        }
+    }
+    else {
+        if (selectedCellInfo.offset == 0) {
+            let nextHeadIndex = selectedCellInfo.headIndex == 0 ? heads.length - 1 : selectedCellInfo.headIndex - 1;
+            return new SelectedCellInfo(nextHeadIndex, heads[nextHeadIndex].info.word.length - 1);
+        }
+        else {
+            return new SelectedCellInfo(selectedCellInfo.headIndex, selectedCellInfo.offset - 1);
+        }
+    }
 }

@@ -5,7 +5,7 @@ function CrosswordClues({heads}: {heads: Array<WordHead>}): Array<JSX.Element> {
 
     let clues: Array<JSX.Element> = [];
     for (const head of heads) {
-        let displayStr: string = `${head.id} ${head.right ? "RIGHT" : "DOWN"}: Clue for ${head.word}`
+        let displayStr: string = `${head.id} ${head.right ? "RIGHT" : "DOWN"}: ${head.info.clue} (${head.info.word})`
         let element: JSX.Element = <p key={displayStr}>{displayStr}</p>;
         clues.push(element);
     }

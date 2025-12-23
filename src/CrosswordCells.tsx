@@ -1,48 +1,58 @@
 import {useState, useEffect, type JSX} from 'react'
 import Cell from "./Cell.tsx"
 import {isLetterKey} from "./Utils.tsx"
-import {WordHead, CellPos, CellData, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, getCellHeadNumber, gridClickCallback, SelectedCellInfo, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos} from "./CrosswordUtils"
+import {WordHead, CellPos, CellData, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, getCellHeadNumber, gridClickCallback, SelectedCellInfo, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getIncrementedOrDecrementedSelectedCell} from "./CrosswordUtils"
 
 function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
 
     const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedCellInfo>(new SelectedCellInfo(0, 0));
 
-    const [cellDatas, setCellDatas] = useState<Array<CellData>>(getAllCellData(heads));
+    const [cellDatas, setCellDatas] = useState<Array<CellData>>([]);
+
+    useEffect(() => {
+        setSelectedCellInfo(new SelectedCellInfo(0, 0));
+        setCellDatas(getAllCellData(heads))
+    
+    }, [heads]);
     
     useEffect(() => {
         console.log('keyCallback');
         const keyCallback = (e: any) => {
 
-            if (!isLetterKey(e.key))
-                return;
+            let newLetter: string | null = null;
 
-            const letter: string = e.key.toUpperCase();
+            if (e.key == 'Backspace')
+                newLetter = '';
+            else if (isLetterKey(e.key))
+                newLetter = e.key.toUpperCase();
 
-            setCellDatas((curDatas: Array<CellData>) => {
-                const newCellDatas: Array<CellData> = curDatas.map((c, i) => {
-                    if (cellPosIsSameAsSelectedCell(c.pos, heads, selectedCellInfo)) {
-                        console.log(letter);
-                        if (selectedCellInfo.offset == heads[selectedCellInfo.headIndex].word.length - 1) {
-                            let nextHeadIndex = (selectedCellInfo.headIndex + 1) % heads.length;
-                            setSelectedCellInfo(new SelectedCellInfo(nextHeadIndex, 0));
+            if (newLetter != null) {
+                setCellDatas((curDatas: Array<CellData>) => {
+                    const newCellDatas: Array<CellData> = curDatas.map((c, i) => {
+
+                        // If this cell is selected
+                        if (cellPosIsSameAsSelectedCell(c.pos, heads, selectedCellInfo)) {
+                            console.log(newLetter);
+                            return new CellData(c.pos, newLetter);
                         }
-                        else {
-                            setSelectedCellInfo(new SelectedCellInfo(selectedCellInfo.headIndex, selectedCellInfo.offset + 1));
-                        }
-                        return new CellData(c.pos, letter);
-                    }
-                    return c;
+                        return c;
+                    });
+                    return newCellDatas;
                 });
-                return newCellDatas;
-            });
+
+                setSelectedCellInfo(getIncrementedOrDecrementedSelectedCell(newLetter != '', selectedCellInfo, heads));
+            }
         }
 
-        document.addEventListener("keypress", keyCallback)
+        document.addEventListener("keydown", keyCallback)
 
         return () => {
-            document.removeEventListener("keypress", keyCallback);
+            document.removeEventListener("keydown", keyCallback);
         }
+        
     }, [selectedCellInfo]);
+
+
 
     let elements: Array<JSX.Element> = []
 
@@ -67,10 +77,6 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
         const gridClickFunc = () => {
             
             setSelectedCellInfo(getPriorityCellInfoForCellPos(cellPos, heads, selectedCellInfo));
-            // if (newSelectedCellInfo == null)
-            //     setSelectedCellInfo(new SelectedCellInfo(0, 0));
-            // else
-            //     setSelectedCellInfo(newSelectedCellInfo);
             
         }
 
