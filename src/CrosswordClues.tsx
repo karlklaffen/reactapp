@@ -1,15 +1,26 @@
 import {type JSX} from 'react'
 import type { WordHead } from './CrosswordUtils';
 
-function CrosswordClues({heads}: {heads: Array<WordHead>}): Array<JSX.Element> {
+function CrosswordClues({heads}: {heads: Array<WordHead>}): JSX.Element {
 
-    let clues: Array<JSX.Element> = [];
+    let downs: Array<JSX.Element> = [];
+    let rights: Array<JSX.Element> = [];
+
     for (const head of heads) {
-        let displayStr: string = `${head.id} ${head.right ? "RIGHT" : "DOWN"}: ${head.info.clue} (${head.info.word})`
-        let element: JSX.Element = <p key={displayStr}>{displayStr}</p>;
-        clues.push(element);
+        let arrayToAppend = head.right ? rights : downs;
+
+        let displayStr: string = `${head.id}. ${head.info.clue}`;
+        arrayToAppend.push(<p key={displayStr}>{displayStr}</p>);
     }
-    return clues;
+
+    return (
+    <div>
+        <p>ACROSS</p>
+        {rights}
+        <p>DOWN</p>
+        {downs}
+    </div>
+    )
 }
 
 export default CrosswordClues;
