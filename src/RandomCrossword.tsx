@@ -1,5 +1,5 @@
 import { useEffect, useState, type JSX } from 'react'
-import {setJsonFromAPI, getJsonFromAPI, areLetters} from "./Utils"
+import {setJsonFromAPI, getJsonFromAPI, areLetters, getCheckedRadio} from "./Utils"
 import {WordInfo, WordHead, CellPos} from "./CrosswordUtils"
 
 import Crossword from "./Crossword"
@@ -25,18 +25,26 @@ function getWordFromTitle(title: string): string | null {
 
 function getClueFromSentence(sentence: string): string | null {
   const descriptorWords = ['is', 'was', 'are']
+  let minIndex: number = -1;
+  let curFoundWord: string = '';
   for (const word of descriptorWords) {
     let wordToFind: string = ` ${word} `;
-    console.log('word', word, sentence);
     let index: number = sentence.indexOf(wordToFind);
     if (index == -1)
       continue;
 
-    let clueToReturn: string = sentence.substring(index + wordToFind.length);
-    return `${clueToReturn[0].toUpperCase()}${clueToReturn.substring(1)}`;
+    if (minIndex == -1 || index < minIndex) {
+      minIndex = index;
+      curFoundWord = wordToFind;
+    }
   }
 
-  return null;
+  if (minIndex == -1)
+    return null;
+
+  let clueToReturn: string = sentence.substring(minIndex + curFoundWord.length);
+  return `${clueToReturn[0].toUpperCase()}${clueToReturn.substring(1)}`;
+
 }
 
 function getWordInfoFromWikiJson(pageJson: any): WordInfo | null {
@@ -55,8 +63,6 @@ function getWordInfoFromWikiJson(pageJson: any): WordInfo | null {
 }
 
 function getWordInfosFromWikiJson(json: any, maxWanted: number | null = null): Array<WordInfo> {
-
-  console.log(json.query.pages);
 
   let infos: Array<WordInfo> = [];
   const pages: any = json.query.pages;
@@ -77,27 +83,28 @@ function getWordInfosFromWikiJson(json: any, maxWanted: number | null = null): A
   return infos;
 }
 
-async function getWikiData(requestNum: number): Promise<any> {
-  return getJsonFromAPI('https://en.wikipedia.org/w/api.php?',
+async function getWikiData(wiki: string, requestNum: number): Promise<any> {
+  return getJsonFromAPI(`https://${wiki}/api.php?`,
       {
         action: 'query',
         format: 'json',
+        origin: '*',
         prop: 'extracts',
-        exintro: 'true',
-        exsentences: '1',
-        explaintext: 'true',
         generator: 'random',
+        formatversion: '2',
+        exsentences: '1',
+        exintro: '1',
+        explaintext: '1',
         grnnamespace: '0',
-        grnlimit: requestNum.toString(),
-        origin: '*'
+        grnlimit: requestNum.toString()
       },
       {
-        'User-Agent': 'karlklaffen@gmail.com'
+        // 'User-Agent': 'karlklaffen@gmail.com'
       }
     );
 }
 
-async function getMinWikiData(totalRequested: number): Promise<Array<WordInfo>> {
+async function getMinWikiData(wiki: string, totalRequested: number): Promise<Array<WordInfo>> {
   // Plan for getting minimum:
   // Get num requested * 2 
   // After, keep getting num remaining * 2
@@ -108,7 +115,7 @@ async function getMinWikiData(totalRequested: number): Promise<Array<WordInfo>> 
 
     let numNeeded = totalRequested - infos.length;
 
-    const jsonBatch: any = await getWikiData(numNeeded * 2);
+    const jsonBatch: any = await getWikiData(wiki, numNeeded * 2);
 
     let theseInfos: Array<WordInfo> = getWordInfosFromWikiJson(jsonBatch, numNeeded);
     infos.push(...theseInfos);
@@ -145,9 +152,11 @@ function RandomCrossword() {
   let getRandomCrosswordFunc = async () => {
     setResetEnabled(false);
 
-    let wordInfos: Array<WordInfo> = await getMinWikiData(5);
-    console.log('infos', wordInfos);
-    setWordHeads(getWordHeadsFromInfo(wordInfos));
+    let radioElem: HTMLInputElement | null = getCheckedRadio("wikitype");
+    if (radioElem != null) {
+      let wordInfos: Array<WordInfo> = await getMinWikiData(radioElem.value, 5);
+      setWordHeads(getWordHeadsFromInfo(wordInfos));
+    }
 
     setResetEnabled(true);
   }
@@ -163,6 +172,10 @@ function RandomCrossword() {
       <button onClick={getRandomCrosswordFunc} disabled={!resetEnabled}>
         Generate New Crossword
       </button>
+      <input type="radio" name="wikitype" id="wikipediabt" value="en.wikipedia.org/w" defaultChecked/>
+      <label htmlFor="wikipediabt">Wikipedia</label>
+      <input type="radio" name="wikitype" id="minecraftwikibt" value="minecraft.wiki" />
+      <label htmlFor="minecraftwikibt">Minecraft Wiki</label>
     </div>
   )
 }

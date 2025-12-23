@@ -51,3 +51,11 @@ export function areLetters(str: string): boolean {
 
     return true;
 }
+
+export function getCheckedRadio(name: string): HTMLInputElement | null {
+    for (let bt of document.getElementsByName(name) as NodeListOf<HTMLInputElement>) {
+        if (bt.checked)
+            return bt;
+    }
+    return null;
+}

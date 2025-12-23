@@ -16,8 +16,14 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
     }, [heads]);
     
     useEffect(() => {
-        console.log('keyCallback');
         const keyCallback = (e: any) => {
+
+            console.log(e.key);
+
+            if (e.key == 'Enter') {
+                setSelectedCellInfo(new SelectedCellInfo((selectedCellInfo.headIndex + 1) % heads.length, 0));
+                return;
+            }
 
             let newLetter: string | null = null;
 
@@ -32,7 +38,6 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
 
                         // If this cell is selected
                         if (cellPosIsSameAsSelectedCell(c.pos, heads, selectedCellInfo)) {
-                            console.log(newLetter);
                             return new CellData(c.pos, newLetter);
                         }
                         return c;
@@ -101,8 +106,6 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
     const parentStyle = {
       gridTemplateAreas: gridTemplateAreaStrs.join(' '),
     };
-
-    console.log('rerendered')
 
     return (<div id='cross-parent' style={parentStyle}>
       {elements}
