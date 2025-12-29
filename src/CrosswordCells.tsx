@@ -1,9 +1,9 @@
 import {useState, useEffect, type JSX} from 'react'
 import Cell from "./Cell.tsx"
 import {isLetterKey} from "./Utils.tsx"
-import {WordHead, CellPos, CellData, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, getCellHeadNumber, gridClickCallback, SelectedCellInfo, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getIncrementedOrDecrementedSelectedCell} from "./CrosswordUtils"
+import {WordHead, CellPos, CellData, WordCollection, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, gridClickCallback, SelectedCellInfo, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getIncrementedOrDecrementedSelectedCell} from "./CrosswordUtils"
 
-function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
+function CrosswordCells({heads}: {heads: Array<WordHead>}): JSX.Element {
 
     const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedCellInfo>(new SelectedCellInfo(0, 0));
 
@@ -14,30 +14,33 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
         setCellDatas(getAllCellData(heads))
     
     }, [heads]);
+
+    console.log('these heads', heads);
+    let wordCollection: WordCollection = new WordCollection(heads);
     
     useEffect(() => {
         const keyCallback = (e: any) => {
 
             console.log(e.key);
 
-            if (e.key == 'Enter') {
-                setSelectedCellInfo(new SelectedCellInfo((selectedCellInfo.headIndex + 1) % heads.length, 0));
+            if (e.key === 'Enter') {
+                setSelectedCellInfo(new SelectedCellInfo((selectedCellInfo.headIndex + 1) % wordCollection.heads.length, 0));
                 return;
             }
 
             let newLetter: string | null = null;
 
-            if (e.key == 'Backspace')
+            if (e.key === 'Backspace')
                 newLetter = '';
             else if (isLetterKey(e.key))
                 newLetter = e.key.toUpperCase();
 
-            if (newLetter != null) {
+            if (newLetter !== null) {
                 setCellDatas((curDatas: Array<CellData>) => {
                     const newCellDatas: Array<CellData> = curDatas.map((c, i) => {
 
                         // If this cell is selected
-                        if (cellPosIsSameAsSelectedCell(c.pos, heads, selectedCellInfo)) {
+                        if (cellPosIsSameAsSelectedCell(c.pos, wordCollection.heads, selectedCellInfo)) {
                             return new CellData(c.pos, newLetter);
                         }
                         return c;
@@ -45,7 +48,7 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
                     return newCellDatas;
                 });
 
-                setSelectedCellInfo(getIncrementedOrDecrementedSelectedCell(newLetter != '', selectedCellInfo, heads));
+                setSelectedCellInfo(getIncrementedOrDecrementedSelectedCell(newLetter !== '', selectedCellInfo, wordCollection.heads));
             }
         }
 
@@ -77,16 +80,17 @@ function CrosswordCells({heads} : {heads: Array<WordHead>}): JSX.Element {
         let cellPos = cellDatas[i].pos;
         let idStr: string = cellPos.getCellId();
 
-        let headNum: number = getCellHeadNumber(heads, cellPos);
+        // let headNum: number = getCellHeadNumber(wordCollection.heads, cellPos);
+        let headNum: number = wordCollection.getCellHeadNumber(cellPos);
 
         const gridClickFunc = () => {
             
-            setSelectedCellInfo(getPriorityCellInfoForCellPos(cellPos, heads, selectedCellInfo));
+            setSelectedCellInfo(getPriorityCellInfoForCellPos(cellPos, wordCollection.heads, selectedCellInfo));
             
         }
 
-        let selected = cellPosIsSameAsSelectedCell(cellPos, heads, selectedCellInfo);
-        let inSameWord = heads[selectedCellInfo.headIndex].getOffsetNum(cellPos) != null;
+        let selected = cellPosIsSameAsSelectedCell(cellPos, wordCollection.heads, selectedCellInfo);
+        let inSameWord = wordCollection.heads[selectedCellInfo.headIndex].getOffsetNum(cellPos) != null;
 
         let thisElement: JSX.Element = 
           <Cell letter={cellDatas[i].letter} idStr={idStr} headNum={headNum} selected={selected} inSameWord={inSameWord} func={gridClickFunc} key={idStr}/>;

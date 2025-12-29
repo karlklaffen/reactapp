@@ -9,7 +9,7 @@ function Cell({letter, idStr, headNum, selected, inSameWord, func}: {letter: str
         backgroundColor: selected ? 'gold' : (inSameWord ? 'lightblue' : 'white')
     };
 
-    if (headNum == 0)
+    if (headNum === 0)
         return (
         <div className='cell' id={idStr} style={cellStyle} onClick={func}>
             <div className='letter'>{letter}</div>

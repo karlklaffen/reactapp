@@ -10,7 +10,7 @@ export class CellPos {
     }
 
     isSameAs(otherPos: CellPos): boolean {
-        return otherPos.row == this.row && otherPos.col == this.col;
+        return otherPos.row === this.row && otherPos.col === this.col;
     }
 
     toString(): string {
@@ -24,6 +24,34 @@ export class CellPos {
     getCellId(): string {
         return `c${this.toString()}`;
     }
+
+    up(num: number = 1): CellPos {
+        return new CellPos(this.row - num, this.col);
+    }
+
+    down(num: number = 1): CellPos {
+        return new CellPos(this.row + num, this.col);
+    }
+
+    left(num: number = 1): CellPos {
+        return new CellPos(this.row, this.col - num);
+    }
+
+    right(num: number = 1): CellPos {
+        return new CellPos(this.row, this.col + num);
+    }
+
+    getPlusShape(): Set<CellPos> {
+        return new Set([this, this.up(), this.down(), this.left(), this.right()]);
+    }
+
+    getAddedOffset(added: CellPos) {
+        return new CellPos(this.row + added.row, this.col + added.col);
+    }
+
+    inRange(numRows: number, numCols: number) {
+        return this.row < numRows && this.col < numCols;
+    }
 }
 
 export class CellData {
@@ -33,6 +61,22 @@ export class CellData {
     constructor(pos: CellPos, letter: string) {
         this.pos = pos;
         this.letter = letter;
+    }
+}
+
+export class WordLoc {
+    startPos: CellPos;
+    right: boolean;
+
+    constructor(startPos: CellPos, right: boolean) {
+        this.startPos = startPos;
+        this.right = right;
+    }
+
+    getOffsetPos(offset: number): CellPos {
+        if (this.right)
+            return new CellPos(this.startPos.row, this.startPos.col + offset);
+        return new CellPos(this.startPos.row + offset, this.startPos.col);
     }
 }
 
@@ -48,36 +92,60 @@ export class WordInfo {
 
 export class WordHead {
 
-    startPos: CellPos;
-    right: boolean;
-    id: number;
+    loc: WordLoc;
     info: WordInfo;
 
-    constructor(startPos: CellPos, right: boolean, id: number, info: WordInfo) {
-        this.startPos = startPos;
-        this.right = right;
-        this.id = id;
+    constructor(loc: WordLoc, info: WordInfo) {
+        this.loc = loc;
         this.info = info;
-    }
-
-    getOffsetPos(offset: number): CellPos {
-        if (this.right)
-            return new CellPos(this.startPos.row, this.startPos.col + offset);
-        return new CellPos(this.startPos.row + offset, this.startPos.col);
     }
 
     getOffsetNum(cellPos: CellPos): number | null {
         let offset: number = -1;
-        if (this.right && cellPos.row == this.startPos.row && cellPos.col >= this.startPos.col) {
-            offset = cellPos.col - this.startPos.col;
+        if (this.loc.right && cellPos.row === this.loc.startPos.row && cellPos.col >= this.loc.startPos.col) {
+            offset = cellPos.col - this.loc.startPos.col;
         }
-        if (!this.right && cellPos.col == this.startPos.col && cellPos.row >= this.startPos.row) {
-            offset = cellPos.row - this.startPos.row;
+        if (!this.loc.right && cellPos.col === this.loc.startPos.col && cellPos.row >= this.loc.startPos.row) {
+            offset = cellPos.row - this.loc.startPos.row;
         }
 
         if (offset >= 0 && offset < this.info.word.length)
             return offset;
         return null;
+    }
+}
+
+export class WordCollection {
+    heads: Array<WordHead>
+    ids: Array<number>
+
+    constructor(heads: Array<WordHead>) {
+        this.heads = heads;
+        this.ids = [];
+
+        let thisId: number = 1;
+
+        for (let i = 0; i < this.heads.length; i++) {
+            let unique: boolean = true;
+            for (let j = 0; j < i; j++) {
+                if (this.heads[i].loc.startPos.isSameAs(this.heads[j].loc.startPos)) {
+                    unique = false;
+                    break;
+                }
+            }
+            this.ids.push(thisId);
+            if (unique) {
+                thisId++;
+            }
+        }
+    }
+
+    getCellHeadNumber(cellPos: CellPos): number {
+        for (let i = 0; i < this.heads.length; i++) {
+            if (this.heads[i].loc.startPos.isSameAs(cellPos))
+                return this.ids[i];
+        }
+        return 0;
     }
 }
 
@@ -92,7 +160,7 @@ export class SelectedCellInfo {
     }
 
     isSameAs(otherInfo: SelectedCellInfo): boolean {
-        return this.headIndex == otherInfo.headIndex && this.offset == otherInfo.offset;
+        return this.headIndex === otherInfo.headIndex && this.offset === otherInfo.offset;
     }
 }
 
@@ -115,7 +183,7 @@ export function getAllCellPoses(heads: Array<WordHead>): Array<CellPos> {
         
         for (let j = 0; j < heads[i].info.word.length; j++) {
 
-            let thisCellPos: CellPos = heads[i].getOffsetPos(j);
+            let thisCellPos: CellPos = heads[i].loc.getOffsetPos(j);
 
             let unique: boolean = true;
 
@@ -145,14 +213,6 @@ export function getAllCellData(heads: Array<WordHead>): Array<CellData> {
         cellDatas.push(new CellData(cellPoses[i], ''))
 
     return cellDatas;
-}
-
-export function getCellHeadNumber(heads: Array<WordHead>, cellPos: CellPos): number {
-    for (const head of heads) {
-      if (head.startPos.isSameAs(cellPos))
-        return head.id;
-    }
-    return 0;
 }
 
 // export function parseCrosswordInput(inputLines: Array<string>): Array<WordHead> {
@@ -233,7 +293,7 @@ export function getOtherPossibleSelectedCellInfosForCellPos(heads: Array<WordHea
 }
 
 export function cellPosIsSameAsSelectedCell(cellPos: CellPos, heads: Array<WordHead>, selectedCellInfo: SelectedCellInfo): boolean{
-    return cellPos.isSameAs(heads[selectedCellInfo.headIndex].getOffsetPos(selectedCellInfo.offset))
+    return cellPos.isSameAs(heads[selectedCellInfo.headIndex].loc.getOffsetPos(selectedCellInfo.offset))
 }
 
 export function getPriorityCellInfoForCellPos(cellPos: CellPos, heads: Array<WordHead>, curSelected: SelectedCellInfo): SelectedCellInfo {
@@ -241,18 +301,18 @@ export function getPriorityCellInfoForCellPos(cellPos: CellPos, heads: Array<Wor
     let otherInfos: Array<SelectedCellInfo> = getOtherPossibleSelectedCellInfosForCellPos(heads, cellPos, curSelected);
 
     // If there are no other possibilities, just use current selection
-    if (otherInfos.length == 0)
+    if (otherInfos.length === 0)
         return curSelected;
 
     // Prioritize this word if is same word as previous
     for (const otherInfo of otherInfos) {
-        if (otherInfo.headIndex == curSelected.headIndex)
+        if (otherInfo.headIndex === curSelected.headIndex)
             return otherInfo;
     }
 
     // Then, prioritize this word if word head is clicked
     for (const otherInfo of otherInfos) {
-        if (otherInfo.offset == 0)
+        if (otherInfo.offset === 0)
             return otherInfo;
     }
     
@@ -263,7 +323,7 @@ export function getPriorityCellInfoForCellPos(cellPos: CellPos, heads: Array<Wor
 export function getIncrementedOrDecrementedSelectedCell(increment: boolean, selectedCellInfo: SelectedCellInfo, heads: Array<WordHead>) {
     
     if (increment) {
-        if (selectedCellInfo.offset == heads[selectedCellInfo.headIndex].info.word.length - 1) {
+        if (selectedCellInfo.offset === heads[selectedCellInfo.headIndex].info.word.length - 1) {
             let nextHeadIndex = (selectedCellInfo.headIndex + 1) % heads.length;
             return new SelectedCellInfo(nextHeadIndex, 0);
         }
@@ -272,8 +332,8 @@ export function getIncrementedOrDecrementedSelectedCell(increment: boolean, sele
         }
     }
     else {
-        if (selectedCellInfo.offset == 0) {
-            let nextHeadIndex = selectedCellInfo.headIndex == 0 ? heads.length - 1 : selectedCellInfo.headIndex - 1;
+        if (selectedCellInfo.offset === 0) {
+            let nextHeadIndex = selectedCellInfo.headIndex === 0 ? heads.length - 1 : selectedCellInfo.headIndex - 1;
             return new SelectedCellInfo(nextHeadIndex, heads[nextHeadIndex].info.word.length - 1);
         }
         else {
