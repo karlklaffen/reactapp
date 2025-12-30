@@ -4,15 +4,17 @@ import CrosswordCells from "./CrosswordCells"
 import CrosswordClues from "./CrosswordClues"
 
 import { setLinesFromFile } from './Utils'
-import {WordHead} from "./CrosswordUtils"
+import {WordHead, WordCollection} from "./CrosswordUtils"
 import {useState, useEffect, type JSX} from "react"
 
 function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
 
+  let wordCollection: WordCollection = new WordCollection(wordHeads);
+
     return (
     <div>
-      <CrosswordCells heads={wordHeads} />
-      <CrosswordClues heads={wordHeads} />
+      <CrosswordCells wordCollection={wordCollection} />
+      <CrosswordClues wordCollection={wordCollection} />
     </div>
     );
 }

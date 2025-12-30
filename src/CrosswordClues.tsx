@@ -1,16 +1,16 @@
 import {type JSX} from 'react'
-import type { WordHead } from './CrosswordUtils';
+import type { WordHead, WordCollection } from './CrosswordUtils';
 import "./Crossword.css"
 
-function CrosswordClues({heads}: {heads: Array<WordHead>}): JSX.Element {
+function CrosswordClues({wordCollection}: {wordCollection: WordCollection}): JSX.Element {
 
     let downs: Array<JSX.Element> = [];
     let rights: Array<JSX.Element> = [];
 
-    for (const head of heads) {
-        let arrayToAppend = head.right ? rights : downs;
+    for (let i = 0; i < wordCollection.heads.length; i++) {
+        let arrayToAppend = wordCollection.heads[i].loc.right ? rights : downs;
 
-        let displayStr: string = `${head.id}. ${head.info.clue}`;
+        let displayStr: string = `${wordCollection.ids[i]}. ${wordCollection.heads[i].info.clue}`;
         arrayToAppend.push(<p key={displayStr}>{displayStr}</p>);
     }
 

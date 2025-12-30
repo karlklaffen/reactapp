@@ -144,6 +144,8 @@ function RandomCrossword() {
     if (radioElem != null) {
       let wordInfos: Array<WordInfo> = await getMinWikiData(radioElem.value, 5);
 
+      console.log('word infos', wordInfos);
+
       let strs: Array<string> = [];
       for (const info of wordInfos)
         strs.push(info.word);

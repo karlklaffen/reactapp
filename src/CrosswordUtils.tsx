@@ -49,6 +49,10 @@ export class CellPos {
         return new CellPos(this.row + added.row, this.col + added.col);
     }
 
+    minus(subtracted: CellPos) {
+        return new CellPos(this.row - subtracted.row, this.col - subtracted.col);
+    }
+
     inRange(numRows: number, numCols: number) {
         return this.row < numRows && this.col < numCols;
     }

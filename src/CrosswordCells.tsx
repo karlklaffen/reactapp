@@ -3,7 +3,7 @@ import Cell from "./Cell.tsx"
 import {isLetterKey} from "./Utils.tsx"
 import {WordHead, CellPos, CellData, WordCollection, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, gridClickCallback, SelectedCellInfo, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getIncrementedOrDecrementedSelectedCell} from "./CrosswordUtils"
 
-function CrosswordCells({heads}: {heads: Array<WordHead>}): JSX.Element {
+function CrosswordCells({wordCollection}: {wordCollection: WordCollection}): JSX.Element {
 
     const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedCellInfo>(new SelectedCellInfo(0, 0));
 
@@ -11,12 +11,9 @@ function CrosswordCells({heads}: {heads: Array<WordHead>}): JSX.Element {
 
     useEffect(() => {
         setSelectedCellInfo(new SelectedCellInfo(0, 0));
-        setCellDatas(getAllCellData(heads))
+        setCellDatas(getAllCellData(wordCollection.heads))
     
-    }, [heads]);
-
-    console.log('these heads', heads);
-    let wordCollection: WordCollection = new WordCollection(heads);
+    }, [wordCollection]);
     
     useEffect(() => {
         const keyCallback = (e: any) => {
