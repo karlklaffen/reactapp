@@ -106,7 +106,7 @@ class RandomBoard {
     letterCells: Array<string>;
     numCols: number;
 
-    actualLocs: Array<WordLoc>
+    wordPlacements: Array<WordPlacement>
 
     // position of cell that is considered (0, 0) in relation to other cell poses
     origin: CellPos;
@@ -119,7 +119,7 @@ class RandomBoard {
         this.numCols = 0;
         this.origin = new CellPos(0, 0);
 
-        this.actualLocs = Array<WordLoc>(words.length); // invalid as of now
+        this.wordPlacements = [];
 
         let initialConnection: WordConnectionInfo = this.#getInitialRandomConnection();
         this.#constructFromInitialConnection(initialConnection);
@@ -131,7 +131,13 @@ class RandomBoard {
     }
 
     getLocs(): Array<WordLoc> {
-        return this.actualLocs;
+        let actualLocs: Array<WordLoc> = Array<WordLoc>(this.wordPlacements.length);
+
+        for (const placement of this.wordPlacements) {
+            actualLocs[placement.wordIndex] = new WordLoc(this.#getActualPos(placement.startPos), placement.right);
+        }
+
+        return actualLocs;
     }
 
     getBoardLines(): Array<string> {
@@ -177,7 +183,7 @@ class RandomBoard {
 
         console.log('set word', placement, this.words[placement.wordIndex]);
 
-        this.actualLocs[placement.wordIndex] = new WordLoc(placement.startPos, placement.right);
+        this.wordPlacements.push(placement);
         this.availableWordIndices.delete(placement.wordIndex);
     }
 
@@ -394,7 +400,7 @@ class RandomBoard {
     }
 
     #expandLeft(num: number) {
-        console.log('added right', num)
+        console.log('added left', num)
         this.origin = this.origin.right(num);
 
         let newLetterCells: Array<string> = [];
@@ -405,6 +411,8 @@ class RandomBoard {
             }
             newLetterCells.push(this.letterCells[i]);
         }
+
+        this.numCols += num;
 
         this.letterCells = newLetterCells;
     }
@@ -420,6 +428,8 @@ class RandomBoard {
                 newLetterCells.push(...Array<string>(num).fill(' '));
             }
         }
+
+        this.numCols += num;
 
         this.letterCells = newLetterCells;
     }

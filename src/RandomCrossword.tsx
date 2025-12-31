@@ -6,6 +6,9 @@ import { generateCrossword } from './CrosswordGeneration'
 import Crossword from "./Crossword"
 
 function getWordFromTitle(title: string): string | null {
+  if (title.length > 25)
+    return null;
+
   let newTitle: string = '';
 
   for (const char of title) {
@@ -142,7 +145,7 @@ function RandomCrossword() {
 
     let radioElem: HTMLInputElement | null = getCheckedRadio("wikitype");
     if (radioElem != null) {
-      let wordInfos: Array<WordInfo> = await getMinWikiData(radioElem.value, 5);
+      let wordInfos: Array<WordInfo> = await getMinWikiData(radioElem.value, 10);
 
       console.log('word infos', wordInfos);
 

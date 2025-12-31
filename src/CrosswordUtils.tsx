@@ -134,11 +134,12 @@ export class WordCollection {
             for (let j = 0; j < i; j++) {
                 if (this.heads[i].loc.startPos.isSameAs(this.heads[j].loc.startPos)) {
                     unique = false;
+                    this.ids.push(this.ids[j]);
                     break;
                 }
             }
-            this.ids.push(thisId);
             if (unique) {
+                this.ids.push(thisId);
                 thisId++;
             }
         }
