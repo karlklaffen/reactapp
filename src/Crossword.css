@@ -1,9 +1,38 @@
 #cross-parent {
     background-color: black;
     display: grid;
-    width: calc(100vw - 15px);
-    /* max-height: 100vh; */
-    /* height: 640px; */
+    /* width: auto; */
+    margin: auto;
+}
+
+#cross-parent > * {
+    overflow: hidden;
+    /* aspect-ratio: 1 / 1; */
+    border-width: 1px;
+    border-color: black;
+    border-style: solid;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+#cross-parent > * > * {
+    position: absolute;
+}
+
+.letter {
+
+}
+
+.num {
+    left: 0.1vw;
+    top: 0.1vw;
+    font-weight: bold;
+}
+
+.header {
+    font-weight: bold;
 }
 
 #clues {
@@ -14,34 +43,4 @@
     /* flex-direction: row;
     /* align-content: space-evenly; */
     /* justify-content: */
-}
-
-.cell {
-    overflow: hidden;
-    aspect-ratio: 1 / 1;
-    border-width: 1px;
-    border-color: black;
-    border-style: solid;
-    /* font-family: monospace;  */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-}
-
-.letter {
-    font-size: 5vw;
-    position: absolute;
-}
-
-.num {
-    position: absolute;
-    font-size: 2vw;
-    left: 0.1vw;
-    top: 0.1vw;
-    font-weight: bold;
-}
-
-.header {
-    font-weight: bold;
 }

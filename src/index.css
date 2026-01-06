@@ -1,9 +1,10 @@
 
 
 body {
-  display: flex;
+  /* display: flex;
   margin: 0px;
   padding: 0px;
   min-width: 320px;
-  min-height: 100vh;
+  min-height: 100vh; */
+  /* justify-content: center; */
 }

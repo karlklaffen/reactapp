@@ -5,16 +5,20 @@ import {WordHead, CellPos, CellData, WordCollection, getCellPosesFromData, getAl
 
 function CrosswordCells({wordCollection}: {wordCollection: WordCollection}): JSX.Element {
 
+    // selected cell
     const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedCellInfo>(new SelectedCellInfo(0, 0));
 
+    // cell data
     const [cellDatas, setCellDatas] = useState<Array<CellData>>([]);
 
+    // update cell data when word collection changes
     useEffect(() => {
         setSelectedCellInfo(new SelectedCellInfo(0, 0));
         setCellDatas(getAllCellData(wordCollection.heads))
     
     }, [wordCollection]);
     
+    // handle key input events
     useEffect(() => {
         const keyCallback = (e: any) => {
 
@@ -34,7 +38,7 @@ function CrosswordCells({wordCollection}: {wordCollection: WordCollection}): JSX
 
             if (newLetter !== null) {
                 setCellDatas((curDatas: Array<CellData>) => {
-                    const newCellDatas: Array<CellData> = curDatas.map((c, i) => {
+                    const newCellDatas: Array<CellData> = curDatas.map((c) => {
 
                         // If this cell is selected
                         if (cellPosIsSameAsSelectedCell(c.pos, wordCollection.heads, selectedCellInfo)) {
@@ -73,6 +77,18 @@ function CrosswordCells({wordCollection}: {wordCollection: WordCollection}): JSX
       gridTemplateAreas.push(newRow);
     }
 
+    const screenWidth: number = window.screen.availWidth - 50;
+    const screenHeight: number = window.screen.availHeight - 150;
+
+    const cellWidthAccordingToWidth: number = screenWidth / totalRowsCols.col;
+    const cellWidthAccordingToHeight: number = screenHeight / totalRowsCols.row;
+
+    console.log(screenWidth);
+
+    const cellWidth: number = Math.min(cellWidthAccordingToWidth, cellWidthAccordingToHeight);
+
+    // console.log(scr);
+
     for (let i = 0; i < cellDatas.length; i++) {
         let cellPos = cellDatas[i].pos;
         let idStr: string = cellPos.getCellId();
@@ -90,7 +106,7 @@ function CrosswordCells({wordCollection}: {wordCollection: WordCollection}): JSX
         let inSameWord = wordCollection.heads[selectedCellInfo.headIndex].getOffsetNum(cellPos) != null;
 
         let thisElement: JSX.Element = 
-          <Cell letter={cellDatas[i].letter} idStr={idStr} headNum={headNum} selected={selected} inSameWord={inSameWord} func={gridClickFunc} key={idStr}/>;
+          <Cell letter={cellDatas[i].letter} idStr={idStr} headNum={headNum} selected={selected} inSameWord={inSameWord} func={gridClickFunc} width = {cellWidth} key={idStr}/>;
         
         elements.push(thisElement);
 
@@ -103,9 +119,11 @@ function CrosswordCells({wordCollection}: {wordCollection: WordCollection}): JSX
       gridTemplateAreaStrs.push(`"${row.join(' ')}"`);
     }
 
-
     const parentStyle = {
-      gridTemplateAreas: gridTemplateAreaStrs.join(' '),
+        // position: 'relative' as any,
+        width: `calc(${cellWidth * totalRowsCols.col}px)`,
+        height: `calc(${cellWidth * totalRowsCols.row}px)`,
+        gridTemplateAreas: gridTemplateAreaStrs.join(' '),
     };
 
     return (<div id='cross-parent' style={parentStyle}>
