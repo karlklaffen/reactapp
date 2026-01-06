@@ -87,19 +87,14 @@ function CrosswordCells({wordCollection}: {wordCollection: WordCollection}): JSX
 
     const cellWidth: number = Math.min(cellWidthAccordingToWidth, cellWidthAccordingToHeight);
 
-    // console.log(scr);
-
     for (let i = 0; i < cellDatas.length; i++) {
         let cellPos = cellDatas[i].pos;
         let idStr: string = cellPos.getCellId();
 
-        // let headNum: number = getCellHeadNumber(wordCollection.heads, cellPos);
         let headNum: number = wordCollection.getCellHeadNumber(cellPos);
 
         const gridClickFunc = () => {
-            
             setSelectedCellInfo(getPriorityCellInfoForCellPos(cellPos, wordCollection.heads, selectedCellInfo));
-            
         }
 
         let selected = cellPosIsSameAsSelectedCell(cellPos, wordCollection.heads, selectedCellInfo);

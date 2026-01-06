@@ -21,17 +21,7 @@
     position: absolute;
 }
 
-.letter {
-
-}
-
-.num {
-    left: 0.1vw;
-    top: 0.1vw;
-    font-weight: bold;
-}
-
-.header {
+.bold {
     font-weight: bold;
 }
 

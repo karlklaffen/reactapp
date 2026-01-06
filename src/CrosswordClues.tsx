@@ -1,5 +1,5 @@
 import {type JSX} from 'react'
-import type { WordHead, WordCollection } from './CrosswordUtils';
+import type { WordCollection } from './CrosswordUtils';
 import "./Crossword.css"
 
 function CrosswordClues({wordCollection}: {wordCollection: WordCollection}): JSX.Element {
@@ -17,11 +17,11 @@ function CrosswordClues({wordCollection}: {wordCollection: WordCollection}): JSX
     return (
     <div id="clues">
         <div>
-            <p className="header">ACROSS</p>
+            <p className="bold">ACROSS</p>
             {rights}
         </div>
         <div>
-            <p className="header">DOWN</p>
+            <p className="bold">DOWN</p>
             {downs}
         </div>
     </div>

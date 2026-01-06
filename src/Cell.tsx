@@ -13,24 +13,21 @@ function Cell({letter, idStr, headNum, selected, inSameWord, func, width}: {lett
         fontSize: `${width}px`
     }
 
+    const padding: number = width / 30;
+
     const numStyle = {
-        fontSize: `${width / 3}px`
+        fontSize: `${width / 3}px`,
+        top: `${padding}px`,
+        left: `${padding}px`
     }
 
     let numHTML: JSX.Element = headNum === 0 ? 
-        <></> : <div className='num' style={numStyle}>{headNum}</div>;
-
-    // if (headNum === 0)
-    //     return (
-    //     <div className='cell' id={idStr} style={cellStyle} onClick={func}>
-    //         <div className='letter' style={letterStyle}>{letter}</div>
-    //     </div>
-    //     )
+        <></> : <div className='bold' style={numStyle}>{headNum}</div>;
 
     return (
     <div className='cell' id={idStr} style={cellStyle} onClick={func}>
         {numHTML}
-        <div className='letter' style={letterStyle}>{letter}</div>
+        <div style={letterStyle}>{letter}</div>
     </div>
     )
 }
