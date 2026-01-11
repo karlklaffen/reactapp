@@ -45,16 +45,22 @@ export class CellPos {
         return new Set([this, this.up(), this.down(), this.left(), this.right()]);
     }
 
-    getAddedOffset(added: CellPos) {
+    getAddedOffset(added: CellPos): CellPos {
         return new CellPos(this.row + added.row, this.col + added.col);
     }
 
-    minus(subtracted: CellPos) {
+    minus(subtracted: CellPos): CellPos {
         return new CellPos(this.row - subtracted.row, this.col - subtracted.col);
     }
 
-    inRange(numRows: number, numCols: number) {
+    inRange(numRows: number, numCols: number): boolean {
         return this.row < numRows && this.col < numCols;
+    }
+
+    doSortedFunc(otherPos: CellPos): number {
+        if (this.isSameAs(otherPos))
+            return 0;
+        return (this.row < otherPos.row || (this.row == otherPos.row && this.col < otherPos.col)) ? -1 : 1;
     }
 }
 
@@ -124,7 +130,12 @@ export class WordCollection {
     ids: Array<number>
 
     constructor(heads: Array<WordHead>) {
-        this.heads = heads;
+
+        // TODO: Make it so that this doesn't sort in place and affect heads parameter
+        this.heads = heads.sort((a: WordHead, b: WordHead) => {
+            return a.loc.startPos.doSortedFunc(b.loc.startPos);
+        });
+
         this.ids = [];
 
         let thisId: number = 1;

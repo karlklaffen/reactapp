@@ -1,3 +1,5 @@
+type Primitive = string | number 
+
 export function setLinesFromFile(path: string, setFunction: (lines: Array<string>) => void): void {
 
     fetch(path)
@@ -77,23 +79,23 @@ export function getAllUppercaseLetters(): string {
     return getCharsFromCodePoints(65, 90);
 }
 
-export function getClone<Type>(obj: Type): Type {
-    return structuredClone(obj);
-}
+// export function getClone<Type>(obj: Type): Type {
+//     return structuredClone(obj);
+// }
 
-export function getRandomUniqueElements<Type>(elements: Array<Type>, num: number = 1): Array<Type> {
-    let newList: Array<Type> = getClone(elements);
+// export function getRandomUniqueElements<Type>(elements: Array<Type>, num: number = 1): Array<Type> {
+//     let newList: Array<Type> = getClone(elements);
 
-    let retElems: Array<Type> = [];
+//     let retElems: Array<Type> = [];
 
-    for (let i = 0; i < num; i++) {
-        const thisElemIndex: number = getRandomInt(elements.length);
-        retElems.push(newList[thisElemIndex]);
-        newList.splice(thisElemIndex, 1);
-    }
+//     for (let i = 0; i < num; i++) {
+//         const thisElemIndex: number = getRandomInt(elements.length);
+//         retElems.push(newList[thisElemIndex]);
+//         newList.splice(thisElemIndex, 1);
+//     }
 
-    return retElems;
-}
+//     return retElems;
+// }
 
 export function getRandomUniqueElement<Type>(elements: Array<Type>): Type {
     return elements[getRandomInt(elements.length)];
@@ -117,16 +119,16 @@ export function flipCoin() {
     return getRandomInt(2) == 0 ? "heads" : "tails";
 }
 
-export function getArrayWithRemovedOneOfElems<Type>(arr: Array<Type>, elemsToRemove: Array<Type>): Array<Type> {
-    let copyArr: Array<Type> = getClone(arr);
+// export function getArrayWithRemovedOneOfElems<Type>(arr: Array<Type>, elemsToRemove: Array<Type>): Array<Type> {
+//     let copyArr: Array<Type> = getClone(arr);
     
-    for (const elemToRemove of elemsToRemove) {
-        let index: number = copyArr.indexOf(elemToRemove);
-        copyArr.splice(index, 1);
-    }
+//     for (const elemToRemove of elemsToRemove) {
+//         let index: number = copyArr.indexOf(elemToRemove);
+//         copyArr.splice(index, 1);
+//     }
 
-    return copyArr;
-}
+//     return copyArr;
+// }
 
 export function getArrayWithRemovedAllOfElems<Type>(arr: Array<Type>, elemsToRemove: Set<Type>): Array<Type> {
     let newArr: Array<Type> = [];

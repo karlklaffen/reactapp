@@ -1,5 +1,5 @@
 import {CellPos, WordInfo, WordLoc, WordHead} from "./CrosswordUtils"
-import {getAllUppercaseLetters, getRandomInt, getRandomUniqueElements, getRandomUniqueElement, getMatrix, flipCoin, getArrayWithRemovedIndices, getArrayWithRemovedOneOfElems, addSetsToSet, getAddedSets, getIndicesOfCharInString, range} from "./Utils"
+import {getAllUppercaseLetters, getRandomInt, getRandomUniqueElement, getMatrix, flipCoin, getArrayWithRemovedIndices, addSetsToSet, getAddedSets, getIndicesOfCharInString, range} from "./Utils"
 
 class ConnectionPartInfo {
     wordIndex: number;
