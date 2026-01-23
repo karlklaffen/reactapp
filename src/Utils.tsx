@@ -1,28 +1,4 @@
-type Primitive = string | number 
-
-export function setLinesFromFile(path: string, setFunction: (lines: Array<string>) => void): void {
-
-    fetch(path)
-        .then(response => response.text())
-        .then(text => setFunction(text.split('\r\n')));
-
-}
-
-export async function getJsonFromAPI(baseUrl: string, body: Record<string, string>, headers: HeadersInit): Promise<any> {
-    return fetch(baseUrl + new URLSearchParams(body).toString(),
-        {
-            method: "GET",
-            headers: headers,
-        })
-        .then(text => text.json());
-}
-
-export function setJsonFromAPI(baseUrl: string, body: Record<string, string>, headers: HeadersInit, setFunction: (obj: any) => void): void {
-    let func = async () => {
-        setFunction(await getJsonFromAPI(baseUrl, body, headers));
-    }
-    func();
-}
+import {getJsonFromAPI} from "./APIUtils"
 
 export function isLetterKey(keyStr: string): boolean {
     let code: number = keyStr.charCodeAt(0);
@@ -199,4 +175,14 @@ export function range(max: number) {
         indices.push(i);
 
     return indices;
+}
+
+export function getCheckedRadioId(name: string): string | null {
+  let thisId: string | undefined = getCheckedRadio(name)?.id;
+
+  return thisId == undefined ? null : thisId;
+}
+
+export function getWithDefault<T>(value: T | undefined, def: T): T {
+    return value === undefined ? def : value;
 }

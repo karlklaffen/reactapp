@@ -1,18 +1,16 @@
 import { useEffect, useState, type JSX } from 'react'
-import {setJsonFromAPI} from "./Utils"
+import {getLinesFromFile} from "./APIUtils"
 import {WordHead, CellPos} from "./CrosswordUtils"
+import {fileLinesToWikiCategories, WikiTypeData} from "./RandomCrosswordUtils"
 import './App.css'
 
-import Crossword from "./Crossword"
-import RandomCrossword from './RandomCrossword'
+import RandomCrosswordLauncher from './RandomCrosswordLauncher'
 
 function App() {
-  
-  return (
-    <div>
-      <RandomCrossword />
-    </div>
-  )
+
+  return <div>
+    <RandomCrosswordLauncher fileName="wikis.txt" />
+  </div>
 }
 
 export default App;

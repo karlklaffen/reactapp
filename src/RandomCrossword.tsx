@@ -1,151 +1,34 @@
 import { useEffect, useState, type JSX } from 'react'
-import {setJsonFromAPI, getJsonFromAPI, areLetters, getCheckedRadio} from "./Utils"
+import {areLetters, getCheckedRadio, getWithDefault} from "./Utils"
 import {WordInfo, WordHead, CellPos, WordLoc, WordCollection} from "./CrosswordUtils"
+import {getJsonFromAPI, setJsonFromAPI, getLinesFromFile} from "./APIUtils"
 import { generateCrossword } from './CrosswordGeneration'
+import {getMinWikiData, WikiTypeData} from "./RandomCrosswordUtils"
+
+import WikiSelectionRadios from './WikiSelectionRadios'
+import WikiCategoryRadios from './WikiCategoryRadios'
 
 import Crossword from "./Crossword"
 
-function getWordFromTitle(title: string): string | null {
-  if (title.length > 25)
-    return null;
-
-  let newTitle: string = '';
-
-  for (const char of title) {
-    if (char === ' ')
-      continue;
-
-    if (!areLetters(char))
-      return null;
-
-    newTitle += char;
-  }
-
-  if (newTitle === '')
-    return null;
-
-  return newTitle.toUpperCase();
-}
-
-function getClueFromSentence(sentence: string): string | null {
-  const descriptorWords = ['is', 'was', 'are']
-  let minIndex: number = -1;
-  let curFoundWord: string = '';
-  for (const word of descriptorWords) {
-    let wordToFind: string = ` ${word} `;
-    let index: number = sentence.indexOf(wordToFind);
-    if (index === -1)
-      continue;
-
-    if (minIndex === -1 || index < minIndex) {
-      minIndex = index;
-      curFoundWord = wordToFind;
-    }
-  }
-
-  if (minIndex === -1)
-    return null;
-
-  let clueToReturn: string = sentence.substring(minIndex + curFoundWord.length);
-  return `${clueToReturn[0].toUpperCase()}${clueToReturn.substring(1)}`;
-
-}
-
-function getWordInfoFromWikiJson(pageJson: any): WordInfo | null {
-
-  let title: string | null = getWordFromTitle(pageJson.title);
-
-  if (title === null)
-    return null;
-
-  let clue: string | null = getClueFromSentence(pageJson.extract);
-
-  if (clue === null)
-    return null;
-
-  return new WordInfo(title, clue);
-}
-
-function getWordInfosFromWikiJson(json: any, maxWanted: number | null = null): Array<WordInfo> {
-
-  console.log('json', json);
-  let infos: Array<WordInfo> = [];
-  const pages: any = json.query.pages;
-  for (const pageId in pages) {
-
-    if (maxWanted === infos.length)
-      break;
-
-    const thisPage = pages[pageId];
-    let thisInfo: WordInfo | null = getWordInfoFromWikiJson(thisPage);
-
-    if (thisInfo === null)
-      continue;
-
-    infos.push(thisInfo);
-  }
-
-  return infos;
-}
-
-async function getWikiData(wiki: string, requestNum: number): Promise<any> {
-  return getJsonFromAPI(`https://${wiki}/api.php?`,
-      {
-        action: 'query',
-        format: 'json',
-        origin: '*',
-        prop: 'extracts',
-        generator: 'random',
-        formatversion: '2',
-        exsentences: '1',
-        exintro: '1',
-        explaintext: '1',
-        grnnamespace: '0',
-        grnlimit: requestNum.toString()
-      },
-      {
-        'User-Agent': 'karlklaffen@gmail.com'
-      }
-    );
-}
-
-async function getMinWikiData(wiki: string, totalRequested: number): Promise<Array<WordInfo>> {
-  // Plan for getting minimum:
-  // Get num requested * 2 
-  // After, keep getting num remaining * 2
-
-  let infos: Array<WordInfo> = [];
-
-  while (infos.length < totalRequested) {
-
-    let numNeeded = totalRequested - infos.length;
-
-    const jsonBatch: any = await getWikiData(wiki, numNeeded * 2);
-
-    let theseInfos: Array<WordInfo> = getWordInfosFromWikiJson(jsonBatch, numNeeded);
-    infos.push(...theseInfos);
-  }
-    
-  return infos;
-  
-}
-
-function RandomCrossword() {
+function RandomCrossword({wikiTypeData}: {wikiTypeData: Map<string, WikiTypeData>}): JSX.Element {
 
   const [wordHeads, setWordHeads] = useState(Array<WordHead>());
   const [resetEnabled, setResetEnabled] = useState(true);
 
-  // let afterGotDataFunc = (json: any) => {
-  //   setWikiJson(json);
-  //   setResetEnabled(true);
-  // }
+  const [selectedWikiName, setSelectedWikiName] = useState<string>(getWithDefault(wikiTypeData.keys().next().value, ""));
+
+  if (wikiTypeData.size == 0)
+    return <div>No Wikis to generate crossword</div>
+
+  let checkedWikiRadio: HTMLInputElement | null = getCheckedRadio("wiki");
 
   let getRandomCrosswordFunc = async () => {
     setResetEnabled(false);
 
-    let radioElem: HTMLInputElement | null = getCheckedRadio("wikitype");
-    if (radioElem != null) {
-      let wordInfos: Array<WordInfo> = await getMinWikiData(radioElem.value, 10);
+    let selectedWikiUrl: string | undefined = checkedWikiRadio == null ? undefined : wikiTypeData.get(checkedWikiRadio.value)?.url;
+
+    if (selectedWikiUrl != undefined) {
+      let wordInfos: Array<WordInfo> = await getMinWikiData(selectedWikiUrl, 10);
 
       console.log('word infos', wordInfos);
 
@@ -167,22 +50,41 @@ function RandomCrossword() {
     setResetEnabled(true);
   }
 
+  let updateCategoriesFunc = (e: any) => {
+    if (e.target == null)
+      return;
+
+    setSelectedWikiName(e.target.value);
+    console.log(e.target.value);
+  }
+
   console.log(wordHeads.length === 0, wordHeads);
   let baseElements: JSX.Element = wordHeads.length === 0 ?
     <p>No Crossword</p>
     :
     <Crossword wordHeads={wordHeads} />
-  
+
+  let categoryNames: Array<string> | null = getWithDefault(wikiTypeData.get(selectedWikiName)?.categoryNames, null);
+
+  console.log(checkedWikiRadio);
+
   return (
     <div>
       {baseElements}
       <button onClick={getRandomCrosswordFunc} disabled={!resetEnabled}>
         Generate New Crossword
       </button>
-      <input type="radio" name="wikitype" id="wikipediabt" value="en.wikipedia.org/w" defaultChecked/>
-      <label htmlFor="wikipediabt">Wikipedia</label>
-      <input type="radio" name="wikitype" id="minecraftwikibt" value="minecraft.wiki" />
-      <label htmlFor="minecraftwikibt">Minecraft Wiki</label>
+      
+      <div>
+        <div>
+          Wiki:
+          <WikiSelectionRadios wikiNames={Array.from(wikiTypeData.keys())} groupName={"wiki"} onClick={updateCategoriesFunc}/>
+        </div>
+        <div>
+          Category:
+          <WikiCategoryRadios wikiCategories={categoryNames} />
+        </div>
+      </div>
     </div>
   )
 }

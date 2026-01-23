@@ -3,7 +3,6 @@ import './Crossword.css'
 import CrosswordCells from "./CrosswordCells"
 import CrosswordClues from "./CrosswordClues"
 
-import { setLinesFromFile } from './Utils'
 import {WordHead, WordCollection} from "./CrosswordUtils"
 import {useState, useEffect, type JSX} from "react"
 
