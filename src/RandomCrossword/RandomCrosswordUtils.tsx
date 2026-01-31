@@ -1,6 +1,6 @@
-import {areLetters} from "./Utils"
-import {WordInfo} from "./CrosswordUtils"
-import {getJsonFromAPI} from "./APIUtils"
+import {areLetters, getRandomUniqueElements} from "../Utils/Utils"
+import {WordInfo} from "../Crossword/CrosswordUtils"
+import {getJsonFromAPI} from "../Utils/APIUtils"
 
 function getWordFromTitle(title: string): string | null {
   if (title.length > 25)
@@ -103,6 +103,22 @@ async function getRandomPageWikiData(wiki: string, requestNum: number): Promise<
     );
 }
 
+async function getPageWikiData(wiki: string, titles: Array<string>): Promise<any> {
+  return getJsonFromAPI(`https://${wiki}/api.php?`,
+      {
+        action: 'query',
+        format: 'json',
+        origin: '*',
+        prop: 'extracts',
+        titles: titles.join('|'),
+        formatversion: '2',
+        exsentences: '1',
+        exintro: '1',
+        explaintext: '1',
+      }
+    );
+}
+
 function parseCategoryTitleData(data: any): Array<string> {
   let titles: Array<string> = [];
 
@@ -158,16 +174,6 @@ export async function getMinWikiData(wiki: string, totalRequested: number): Prom
   
 }
 
-// export class WikiType {
-//   name: string;
-//   url: string;
-
-//   constructor(name: string, url: string) {
-//     this.name = name;
-//     this.url = url;
-//   }
-// }
-
 export class WikiTypeData {
   url: string;
   categoryNames: Array<string>;
@@ -222,4 +228,24 @@ export function fileLinesToWikiCategories(lines: Array<string>): Map<string, Wik
   console.log(catMap);
 
   return catMap;
+}
+
+export async function getNumRandomWordInfosFromCategory(wiki: string, category: string, num: number): Promise<Array<WordInfo>> {
+  let allPages: Array<string> = await getAllPageTitlesInCategory(wiki, category);
+
+  let selectedPageTitles: Array<string> = getRandomUniqueElements(allPages, num);
+
+  let data: any = await getPageWikiData(wiki, selectedPageTitles);
+
+  return getWordInfosFromWikiJson(data);
+}
+
+export class RandomCrosswordSpecificationInfo {
+  wikiName: string;
+  categoryName: string;
+
+  constructor(wikiName: string, categoryName: string) {
+    this.wikiName = wikiName;
+    this.categoryName = categoryName;
+  }
 }

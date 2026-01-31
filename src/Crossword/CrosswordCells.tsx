@@ -1,7 +1,7 @@
 import {useState, useEffect, type JSX} from 'react'
 import Cell from "./Cell.tsx"
-import {isLetterKey} from "./Utils.tsx"
-import {WordHead, CellPos, CellData, WordCollection, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, gridClickCallback, SelectedCellInfo, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getIncrementedOrDecrementedSelectedCell} from "./CrosswordUtils"
+import {isLetterKey} from "../Utils/Utils.tsx"
+import {WordHead, CellPos, CellData, WordCollection, getCellPosesFromData, getAllCellData, getAllCellPoses, getTotalRowsCols, gridClickCallback, SelectedCellInfo, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getIncrementedOrDecrementedSelectedCell} from "./CrosswordUtils.tsx"
 
 function CrosswordCells({wordCollection}: {wordCollection: WordCollection}): JSX.Element {
 

@@ -73,6 +73,21 @@ export function getAllUppercaseLetters(): string {
 //     return retElems;
 // }
 
+export function getRandomUniqueElements<Type>(elements: Array<Type>, num: number): Array<Type> {
+    let availableIndices: Array<number> = range(elements.length);
+
+    let retArray: Array<Type> = [];
+    
+    for (let i = 0; i < num; i++) {
+        let randomIndicesIndex: number = getRandomInt(availableIndices.length);
+        let thisIndex = availableIndices[randomIndicesIndex];
+        availableIndices.splice(randomIndicesIndex, 1);
+        retArray.push(elements[thisIndex]);
+    }
+
+    return retArray;
+}
+
 export function getRandomUniqueElement<Type>(elements: Array<Type>): Type {
     return elements[getRandomInt(elements.length)];
 }
@@ -168,10 +183,10 @@ export function getIndicesOfCharInString(str: string, char: string) {
     return indices;
 }
 
-export function range(max: number) {
+export function range(max: number, min: number = 0) {
 
     let indices: Array<number> = [];
-    for (let i = 0; i < max; i++)
+    for (let i = min; i < max; i++)
         indices.push(i);
 
     return indices;

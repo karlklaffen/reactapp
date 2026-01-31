@@ -1,9 +1,9 @@
 import {type JSX} from "react"
 
-function WikiCategoryRadios({wikiCategories}: {wikiCategories: Array<string> | null}): Array<JSX.Element> {
+function WikiCategoryRadios({wikiCategories, groupName, onClick}: {wikiCategories: Array<string> | null, groupName: string, onClick: (e: any) => void}): Array<JSX.Element> {
     let categories: Array<JSX.Element> = [
-            <div key="">
-                <input type="radio" name="category" id="catallbt" value="" defaultChecked/>
+            <div key="All">
+                <input type="radio" name={groupName} id="catallbt" value="All" onClick={onClick} defaultChecked/>
                 <label htmlFor="catallbt">All</label>
             </div>
         ];
@@ -21,7 +21,7 @@ function WikiCategoryRadios({wikiCategories}: {wikiCategories: Array<string> | n
             let id: string = `radio-${categoryName}`;
             categories.push(
                 <div key={categoryName}>
-                    <input type="radio" name="category" id={id} value={categoryName}/>
+                    <input type="radio" name={groupName} id={id} value={categoryName} onClick={onClick}/>
                     <label htmlFor={id}>{categoryName}</label>
                 </div>
             )

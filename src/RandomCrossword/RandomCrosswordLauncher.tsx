@@ -1,28 +1,25 @@
 import { useEffect, useState, type JSX } from 'react'
-import {getLinesFromFile} from "./APIUtils"
-import {WordHead, CellPos} from "./CrosswordUtils"
+import {getLinesFromFile} from "../Utils/APIUtils"
 import {fileLinesToWikiCategories, WikiTypeData} from "./RandomCrosswordUtils"
 
-import RandomCrossword from './RandomCrossword'
+import RandomCrosswordHandler from './RandomCrosswordHandler'
 
 function RandomCrosswordLauncher({fileName}: {fileName: string}) {
     const [wikiTypeData, setWikiTypeData] = useState<Map<string, WikiTypeData> | null>(null);
 
   useEffect(() => {
     (async () => {
-      let wikiDataLines: Array<string> = await getLinesFromFile("wikis.txt");
+      let wikiDataLines: Array<string> = await getLinesFromFile(fileName);
       setWikiTypeData(fileLinesToWikiCategories(wikiDataLines));
     })();
   }, []);
 
   if (wikiTypeData == null)
     return <div>Loading Random Crossword Data...</div>
-
-  console.log(wikiTypeData);
   
   return (
     <div>
-      <RandomCrossword wikiTypeData={wikiTypeData}/>
+      <RandomCrosswordHandler wikiTypeData={wikiTypeData} minNumAnswers={3} maxNumAnswers={15}/>
     </div>
   )
 }
