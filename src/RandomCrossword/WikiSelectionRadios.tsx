@@ -1,6 +1,6 @@
 import { type JSX, useState, useEffect } from "react";
 import {getJsonFromAPI, getLinesFromFile} from "../Utils/APIUtils"
-import {WikiInfo} from "./RandomCrosswordUtils"
+import {type WikiInfo} from "./RandomCrosswordUtils"
 
 function WikiSelectionRadios({wikiNames, groupName, onClick}: {wikiNames: Array<string>, groupName: string, onClick: (e: any) => void}): Array<JSX.Element> {
 

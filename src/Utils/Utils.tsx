@@ -201,3 +201,13 @@ export function getCheckedRadioId(name: string): string | null {
 export function getWithDefault<T>(value: T | undefined, def: T): T {
     return value === undefined ? def : value;
 }
+
+export function getElementsFromIndices<T>(elements: Array<T>, indices: Set<number>): Array<T> {
+    let theseElems: Array<T> = [];
+
+    for (const index of indices) {
+        theseElems.push(elements[index]);
+    }
+
+    return theseElems;
+}

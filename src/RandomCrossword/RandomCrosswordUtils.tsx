@@ -1,6 +1,7 @@
 import {areLetters, getRandomUniqueElements} from "../Utils/Utils"
 import {WordInfo} from "../Crossword/CrosswordUtils"
 import {getJsonFromAPI} from "../Utils/APIUtils"
+import { type SelectionOption } from "../Utils/SmartSelectionUtils";
 
 function getWordFromTitle(title: string): string | null {
   if (title.length > 25)
@@ -174,28 +175,24 @@ export async function getMinWikiData(wiki: string, totalRequested: number): Prom
   
 }
 
-export class WikiTypeData {
+export type WikiType = {
+  displayName: string;
   url: string;
   categoryNames: Array<string>;
-
-  constructor(url: string, categoryNames: Array<string>) {
-    this.url = url;
-    this.categoryNames = categoryNames;
-  }
 }
 
-export class WikiInfo {
+export type WikiTypeData = {
+  url: string;
+  categoryNames: Array<string>;
+}
+
+export type WikiInfo = {
   name: string;
   url: string;
-
-  constructor(name: string, url: string) {
-    this.name = name;
-    this.url = url;
-  }
 }
 
-export function fileLinesToWikiCategories(lines: Array<string>): Map<string, WikiTypeData> {
-  let catMap: Map<string, WikiTypeData> = new Map();
+export function fileLinesToWikiCategories(lines: Array<string>): Array<WikiType> {
+  let types: Array<WikiType> = new Array<WikiType>();
 
   let collectedData: boolean = false;
   let curWikiName: string = "";
@@ -207,7 +204,7 @@ export function fileLinesToWikiCategories(lines: Array<string>): Map<string, Wik
   for (let i = 0; i <= lines.length; i++) {
     if (lines[i] == "" || i == lines.length) { // blank line or end, reset
       if (collectedData) {
-        catMap.set(curWikiName, new WikiTypeData(curWikiUrl, curCats));
+        types.push({displayName: curWikiName, url: curWikiUrl, categoryNames: curCats});
         collectedData = false;
       }
     }
@@ -225,9 +222,9 @@ export function fileLinesToWikiCategories(lines: Array<string>): Map<string, Wik
     }
   }
 
-  console.log(catMap);
+  console.log(types);
 
-  return catMap;
+  return types;
 }
 
 export async function getNumRandomWordInfosFromCategory(wiki: string, category: string, num: number): Promise<Array<WordInfo>> {
@@ -249,3 +246,26 @@ export class RandomCrosswordSpecificationInfo {
     this.categoryName = categoryName;
   }
 }
+
+export function getWikiTypeByDisplayName(wikiTypes: Array<WikiType>, displayName: string): WikiType | undefined {
+  for (const type of wikiTypes)
+    if (type.displayName == displayName)
+      return type;
+  
+  return undefined;
+}
+
+// export function getSelectionOptionsFromWikiTypes(wikiTypes: Array<WikiType>): Array<SelectionOption> {
+//   let options: Array<SelectionOption> = [];
+
+//   for (const type of wikiTypes)
+//     options.push({displayName: type.displayName, value: type.url});
+
+//   return options;
+// }
+
+// export function getSelectionOptionsFromCategoryTypes(catNames: Array<string>): Array<SelectionOption> {
+//   let options: Array<SelectionOption> = [];
+
+
+// }

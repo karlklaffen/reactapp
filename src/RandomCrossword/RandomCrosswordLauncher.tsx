@@ -1,11 +1,12 @@
 import { useEffect, useState, type JSX } from 'react'
 import {getLinesFromFile} from "../Utils/APIUtils"
-import {fileLinesToWikiCategories, WikiTypeData} from "./RandomCrosswordUtils"
+import {fileLinesToWikiCategories, type WikiType} from "./RandomCrosswordUtils"
 
 import RandomCrosswordHandler from './RandomCrosswordHandler'
 
 function RandomCrosswordLauncher({fileName}: {fileName: string}) {
-    const [wikiTypeData, setWikiTypeData] = useState<Map<string, WikiTypeData> | null>(null);
+
+  const [wikiTypeData, setWikiTypeData] = useState<Array<WikiType> | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -19,7 +20,7 @@ function RandomCrosswordLauncher({fileName}: {fileName: string}) {
   
   return (
     <div>
-      <RandomCrosswordHandler wikiTypeData={wikiTypeData} minNumAnswers={3} maxNumAnswers={15}/>
+      <RandomCrosswordHandler wikiTypes={wikiTypeData} minNumAnswers={3} maxNumAnswers={15}/>
     </div>
   )
 }
