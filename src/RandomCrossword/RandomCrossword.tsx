@@ -4,18 +4,23 @@ import { getMinWikiData, getNumRandomWordInfosFromCategory } from "./RandomCross
 import { generateCrossword } from "./CrosswordGeneration";
 import Crossword from "../Crossword/Crossword";
 
-function RandomCrossword({wikiURL, categoryName, numAnswers}: {wikiURL: string, categoryName: string, numAnswers: number}): JSX.Element {
+function RandomCrossword({wikiURL, categoryName, numAnswers, callbackFunc}: {wikiURL: string, categoryName: string, numAnswers: number, callbackFunc: () => void}): JSX.Element {
       
   const [wordHeads, setWordHeads] = useState(Array<WordHead>());
+  const [generatedCrossword, setGeneratedCrossword] = useState<boolean>(false);
 
   console.log('rerender2');
+
+  console.log('num answers      ', numAnswers);
   
   let wordInfos: Array<WordInfo> = [];
+
+  console.log('uruuruurl: ', wikiURL);
 
   useEffect(() => {
 
     let getData: () => Promise<void> = async () => {
-      console.log('started');
+      
       if (categoryName === "All") {
         wordInfos = await getMinWikiData(wikiURL, numAnswers);
       }
@@ -34,16 +39,16 @@ function RandomCrossword({wikiURL, categoryName, numAnswers}: {wikiURL: string, 
         heads.push(new WordHead(wordLocs[i], wordInfos[i]));
       
       setWordHeads(heads);
-      console.log('finished');
+      setGeneratedCrossword(true);
+      callbackFunc();
     };
 
     getData();
-    console.log('tried');
-  }, [])
+  }, []);
 
   
-  return wordHeads.length === 0 ?
-    <p>No Crossword</p>
+  return !generatedCrossword ?
+    <p>Generating Crossword . . .</p>
     :
     <Crossword wordHeads={wordHeads} />
 }

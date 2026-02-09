@@ -10,13 +10,15 @@ export class SelectionGroup<T> {
     type: string;
     options: Array<SelectionOption<T>>
     defaultCheckedIndices: Set<number>;
+    callbackFunc: (checkedOption: SelectionOption<T>, checked: boolean) => void;
     addJSXFunc: (checkedOption: SelectionOption<T>) => JSX.Element;
 
-    constructor(name: string, type: string, options: Array<SelectionOption<T>>, defaultCheckedIndices: Set<number>, addJSXFunc: (checkedOption: SelectionOption<T>) => JSX.Element = (checkedOption: SelectionOption<T>) => {return <></>}) {
+    constructor(name: string, type: string, options: Array<SelectionOption<T>>, defaultCheckedIndices: Set<number>, callbackFunc: (checkedOption: SelectionOption<T>, checked: boolean) => void, addJSXFunc: (checkedOption: SelectionOption<T>) => JSX.Element = (_: SelectionOption<T>) => {return <></>}) {
         this.name = name;
         this.type = type;
         this.options = options;
         this.defaultCheckedIndices = defaultCheckedIndices;
+        this.callbackFunc = callbackFunc;
         this.addJSXFunc = addJSXFunc;
     }
 

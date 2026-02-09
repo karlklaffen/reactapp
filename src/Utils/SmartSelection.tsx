@@ -1,26 +1,26 @@
-import {type JSX, useState} from "react"
+import {type JSX, useState, useEffect} from "react"
 
 import { SelectionGroup, type SelectionOption } from "./SmartSelectionUtils"
 
-import { getElementsFromIndices } from "./Utils";
-
-function SmartSelection<T>({initialGroup}: {initialGroup: SelectionGroup<T>}): Array<JSX.Element> {
+function SmartSelection<T>({initialGroup}: {initialGroup: SelectionGroup<T>}): JSX.Element {
     const [checkedIndices, setCheckedIndices] = useState<Set<number>>(initialGroup.defaultCheckedIndices);
+
+
+    useEffect(() => {
+        for (const checkedIndex of initialGroup.defaultCheckedIndices)
+            initialGroup.callbackFunc(initialGroup.options[checkedIndex], true);
+    }, []);
 
     let jsxArray: Array<JSX.Element> = [];
 
     for (let i = 0; i < initialGroup.options.length; i++) {
         const option: SelectionOption<T> = initialGroup.options[i];
         
-        jsxArray.push(<div key={option.displayName}>
-                {/* <input type={initialGroup.type} name={initialGroup.name} id={id} value={option.value} onClick={(e: any) => {
-                    setCheckedIndices(initialGroup.getCheckedIndices());
-                }}/>
-                <label htmlFor={id}>{option.displayName}</label> */}
-                
+        jsxArray.push(<div key={option.displayName}>            
                 <label>
-                    <input type={initialGroup.type} name={initialGroup.name} defaultChecked={initialGroup.defaultCheckedIndices.has(i)} onClick={(e: any) => {
+                    <input type={initialGroup.type} name={initialGroup.name} defaultChecked={initialGroup.defaultCheckedIndices.has(i)} onClick={(_: any) => {
                         setCheckedIndices(initialGroup.getCheckedIndices());
+                        initialGroup.callbackFunc(option, true);
                     }} />
                     {option.displayName}
                 </label>
@@ -34,7 +34,10 @@ function SmartSelection<T>({initialGroup}: {initialGroup: SelectionGroup<T>}): A
         </div>);
     
 
-    return jsxArray;
+    return <div>
+        {initialGroup.name}
+        {jsxArray}
+    </div>;
 }
 
 export default SmartSelection;
