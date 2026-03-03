@@ -11,12 +11,12 @@ function SmartSelection<T>({initialGroup}: {initialGroup: SelectionGroup<T>}): J
             initialGroup.callbackFunc(initialGroup.options[checkedIndex], true);
     }, []);
 
-    let jsxArray: Array<JSX.Element> = [];
+    let optionArray: Array<JSX.Element> = [];
 
     for (let i = 0; i < initialGroup.options.length; i++) {
         const option: SelectionOption<T> = initialGroup.options[i];
         
-        jsxArray.push(<div key={option.displayName}>            
+        optionArray.push(<div key={option.displayName}>            
                 <label>
                     <input type={initialGroup.type} name={initialGroup.name} defaultChecked={initialGroup.defaultCheckedIndices.has(i)} onClick={(_: any) => {
                         setCheckedIndices(initialGroup.getCheckedIndices());
@@ -28,15 +28,16 @@ function SmartSelection<T>({initialGroup}: {initialGroup: SelectionGroup<T>}): J
     }
 
     for (const checkedIndex of checkedIndices)
-        jsxArray.push(
+        optionArray.push(
         <div key={checkedIndex}>
             {initialGroup.addJSXFunc(initialGroup.options[checkedIndex])}
         </div>);
     
 
     return <div>
+        <p></p>
         {initialGroup.name}
-        {jsxArray}
+        {optionArray}
     </div>;
 }
 

@@ -30,64 +30,6 @@ class WordConnectionInfo {
     }
 }
 
-// class WordLettersInfo {
-//     wordIndex: number;
-//     letterIndices: Array<number>
-
-//     constructor(wordIndex: number, letterIndices: Array<number>) {
-//         this.wordIndex = wordIndex;
-//         this.letterIndices = letterIndices;
-//     }
-// }
-
-// function getLetterIndexMapFromString(str: string) {
-
-// }
-
-// function getLetterMap(infos: Array<WordInfo>): Map<string, Array<number>> {
-//     let uppercaseLetters: string = getAllUppercaseLetters();
-
-//     let letterMap: Map<string, Array<WordLettersInfo>> = new Map<string, Array<WordLettersInfo>>();
-    
-//     for (const letter of uppercaseLetters) {
-//         letterMap.set(letter, []);
-//     }
-
-//     for (let i = 0; i < infos.length; i++) {
-//         const word = infos[i].word;
-
-//         let wordLetMap: Map<string, Array<number>> = new Map<string, Array<number>>();
-
-//         for (const letter of word) {
-//             if (wordLetMap.con)
-//             letterMap.get(letter)?.push(WordLettersInfo(i, ));
-//         }
-//     }
-
-//     return letterMap;
-// }
-
-// function getInitialCombo(infos: Array<WordInfo>, map: Map<string, Array<number>>): WordConnectionInfo { // length 2
-//     let validLetters: Array<string> = [];
-
-//     for (const pair of map) {
-//         if (pair[1].length >= 2)
-//             validLetters.push(pair[0]);
-//     }
-
-//     let randomLetter: string = getRandomUniqueElements(validLetters, 1)[0];
-
-//     let randomTwoWords: Array<WordInfo> = getRandomUniqueElements(infos, 2);
-
-//     return [infos[0], infos[1]];
-// }
-
-// function getBoard(words: Array<string>, connections: Array<WordConnectionInfo>) {
-//     for (const connection of connections) {
-        
-//     }
-// }
-
 class WordPlacement {
     startPos: CellPos;
     right: boolean;
@@ -357,9 +299,7 @@ class RandomBoard {
 
         console.log(possibles, elem);
 
-        // console.log(typeof(getRandomUniqueElements<WordConnectionInfo>(possibles, 1)));
-
-        if (flipCoin() == "heads")
+        if (flipCoin() == "heads") // whimsy
             return elem.getSwapped();
 
         return elem;

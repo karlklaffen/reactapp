@@ -34,3 +34,7 @@
     /* align-content: space-evenly; */
     /* justify-content: */
 }
+
+.highlighted-clue {
+    background-color: rgb(255, 255, 189);
+}

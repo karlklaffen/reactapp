@@ -2,7 +2,7 @@ import { useEffect, useState, type JSX } from 'react'
 import {getLinesFromFile} from "../Utils/APIUtils"
 import {fileLinesToWikiCategories, type WikiType} from "./RandomCrosswordUtils"
 
-import RandomCrosswordHandler from './RandomCrosswordHandler'
+import RandomCrosswordHandler from './RandomCrossword'
 
 function RandomCrosswordLauncher({fileName}: {fileName: string}) {
 

@@ -1,7 +1,8 @@
 import {areLetters, getRandomUniqueElements} from "../Utils/Utils"
-import {WordInfo} from "../Crossword/CrosswordUtils"
+import {WordHead, WordInfo, WordLoc} from "../Crossword/CrosswordUtils"
 import {getJsonFromAPI} from "../Utils/APIUtils"
 import { type SelectionOption } from "../Utils/SmartSelectionUtils";
+import { generateCrossword } from "./CrosswordGeneration";
 
 function getWordFromTitle(title: string): string | null {
   if (title.length > 25)
@@ -254,18 +255,3 @@ export function getWikiTypeByDisplayName(wikiTypes: Array<WikiType>, displayName
   
   return undefined;
 }
-
-// export function getSelectionOptionsFromWikiTypes(wikiTypes: Array<WikiType>): Array<SelectionOption> {
-//   let options: Array<SelectionOption> = [];
-
-//   for (const type of wikiTypes)
-//     options.push({displayName: type.displayName, value: type.url});
-
-//   return options;
-// }
-
-// export function getSelectionOptionsFromCategoryTypes(catNames: Array<string>): Array<SelectionOption> {
-//   let options: Array<SelectionOption> = [];
-
-
-// }
