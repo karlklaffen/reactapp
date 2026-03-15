@@ -1,30 +1,47 @@
 import {type JSX} from "react"
+import { getInputLabelText } from "./Utils";
 
 export type SelectionOption<T> = {
+    
     displayName: string;
     data: T;
 }
 
 export class SelectionGroup<T> {
     name: string;
+    id: string;
     type: string;
-    options: Array<SelectionOption<T>>
-    defaultCheckedIndices: Set<number>;
-    callbackFunc: (checkedOption: SelectionOption<T>, checked: boolean) => void;
-    addJSXFunc: (checkedOption: SelectionOption<T>) => JSX.Element;
+    options: Array<SelectionOption<T>>;
+    defaultSelectedIndices: Set<number>;
+    callbackFunc: (proxy: SelectionGroupProxy<T>, changedOption: SelectionOption<T>, changeSelected: boolean) => void;
+    addJSXFunc: (selectedOption: SelectionOption<T>) => JSX.Element;
 
-    constructor(name: string, type: string, options: Array<SelectionOption<T>>, defaultCheckedIndices: Set<number>, callbackFunc: (checkedOption: SelectionOption<T>, checked: boolean) => void, addJSXFunc: (checkedOption: SelectionOption<T>) => JSX.Element = (_: SelectionOption<T>) => {return <></>}) {
+    parallelHTMLOptions: Array<HTMLInputElement>;
+
+    proxy: SelectionGroupProxy<T>;
+
+    constructor(name: string, id: string, type: string, options: Array<SelectionOption<T>>, defaultSelectedIndices: Set<number>, callbackFunc: (proxy: SelectionGroupProxy<T>, changedOption: SelectionOption<T>, selected: boolean) => void, addJSXFunc: (selectedOption: SelectionOption<T>) => JSX.Element = (_: SelectionOption<T>) => {return <></>}) {
+        
         this.name = name;
+        this.id = id;
         this.type = type;
         this.options = options;
-        this.defaultCheckedIndices = defaultCheckedIndices;
+        this.defaultSelectedIndices = defaultSelectedIndices;
         this.callbackFunc = callbackFunc;
         this.addJSXFunc = addJSXFunc;
+
+        this.parallelHTMLOptions = [];
+
+        this.proxy = new SelectionGroupProxy<T>(this);
     }
 
-    getCheckedIndices(): Set<number> {
+    getDefaultSelectedIndices(): Set<number> {
+        return this.defaultSelectedIndices;
+    }
+
+    getSelectedIndices(): Set<number> {
         let indices: Set<number> = new Set();
-        const allElems: NodeListOf<HTMLInputElement> = document.getElementsByName(this.name) as NodeListOf<HTMLInputElement>;
+        const allElems: Array<HTMLInputElement> = this.getHTMLOptions();
         for (let i = 0; i < allElems.length; i++) {
             if (allElems[i].checked)
                 indices.add(i);
@@ -33,11 +50,119 @@ export class SelectionGroup<T> {
         return indices;
     }
 
-    getIndexOfOption(displayName: string): number {
+    getSelectedUnselectedOptions(): {selected: Array<SelectionOption<T>>, unselected: Array<SelectionOption<T>>} {
+        let selectedOptions: Array<SelectionOption<T>> = [];
+        let unselectedOptions: Array<SelectionOption<T>> = [];
+        const allElems: Array<HTMLInputElement> = this.getHTMLOptions();
+        for (let i = 0; i < allElems.length; i++) {
+            if (allElems[i].checked)
+                selectedOptions.push(this.options[i]);
+            else
+                unselectedOptions.push(this.options[i]);
+        }
+
+        return {
+            selected: selectedOptions,
+            unselected: unselectedOptions
+        };
+    }
+
+    getIndexOfOptionByName(displayName: string): number {
         for (let i = 0; i < this.options.length; i++)
             if (this.options[i].displayName === displayName)
                 return i;
 
         return -1;
+    }
+
+    executeCallback(newlyChangedOptionIndex: number): void {
+        const allOptions: Array<HTMLInputElement> = this.getHTMLOptions();
+
+        this.callbackFunc(this.proxy, this.options[newlyChangedOptionIndex], allOptions[newlyChangedOptionIndex].checked);
+    }
+
+    getUniqueName(): string {
+        return `${this.name}${this.id}`;
+    }
+
+    getHTMLOptions(): Array<HTMLInputElement> {
+        let options = Array.from(document.getElementsByName(this.getUniqueName()) as NodeListOf<HTMLInputElement>);
+        return options;
+    }
+
+    getHTMLInputByOption(option: SelectionOption<T>): HTMLInputElement {
+        return this.getHTMLOptions()[this.options.indexOf(option)];
+    }
+
+    generateJSX(selectedIndices: Set<number>, setSelectedIndices: (newSelectedIndices: Set<number>) => void): JSX.Element {
+        let optionArray: Array<JSX.Element> = [];
+
+        for (let i = 0; i < this.options.length; i++) {
+            const option: SelectionOption<T> = this.options[i];
+            
+            optionArray.push(<div key={option.displayName}>            
+                    <label>
+                        <input type={this.type} name={this.getUniqueName()} defaultChecked={this.defaultSelectedIndices.has(i)} onChange={(e: any) => {
+                            setSelectedIndices(this.getSelectedIndices());
+                            this.executeCallback(i);
+                        }} />
+                        {option.displayName}
+                    </label>
+                </div>);
+        }
+
+        for (const selectedIndex of selectedIndices)
+            optionArray.push(
+            <div key={selectedIndex}>
+                {this.addJSXFunc(this.options[selectedIndex])}
+            </div>);
+
+        return <div>
+            <p></p>
+            {this.name}
+            {optionArray}
+        </div>;
+    }
+}
+
+export class SelectionGroupProxy<T> {
+    group: SelectionGroup<T>
+
+    constructor(group: SelectionGroup<T>) {
+        this.group = group;
+    }
+
+    getSelectedOptions(): Array<SelectionOption<T>> {
+        return this.group.getSelectedUnselectedOptions().selected;
+    }
+
+    getUnselectedOptions(): Array<SelectionOption<T>> {
+        return this.group.getSelectedUnselectedOptions().unselected;
+    }
+
+    setSelected(option: SelectionOption<T>, selected: boolean): void {
+        this.group.getHTMLInputByOption(option).checked = selected;
+    }
+
+    setAllSelectedByName(displayNames: Array<string>, select: boolean): void {
+        for (const option of this.group.options) {
+            if (displayNames.includes(option.displayName)) {
+                this.setSelected(option, select);
+            }
+        }
+    }
+
+    setAllSelectedExceptByName(displayNames: Array<string>, select: boolean): void {
+        for (const option of this.group.options) {
+            if (!displayNames.includes(option.displayName)) {
+                this.setSelected(option, select);
+            }
+        }
+    }
+
+    setAllOnlySelectedByName(displayNames: Array<string>, select: boolean): void {
+        for (const option of this.group.options) {
+            this.setSelected(option, select === displayNames.includes(option.displayName));
+        }
     }
 }

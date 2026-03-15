@@ -182,8 +182,6 @@ export class SelectedCellInfo {
 
 export function gridClickCallback(pos: CellPos) {
     
-    console.log('click', pos.toString());
-
     let id: string = `c${pos.toString()}`;
 
     let element: HTMLElement | null = document.getElementById(id);

@@ -1,11 +1,11 @@
 import './App.css'
 
-import RandomCrosswordLauncher from '../RandomCrossword/RandomCrosswordLauncher'
+import RandomCrosswordFromFile from '../RandomCrossword/RandomCrosswordFromFile';
 
 function App() {
 
   return <div>
-    <RandomCrosswordLauncher fileName="wikis.txt" />
+    <RandomCrosswordFromFile fileName="wikis.txt" />
   </div>
 }
 

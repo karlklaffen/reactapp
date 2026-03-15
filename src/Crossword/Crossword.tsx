@@ -1,9 +1,9 @@
 import { useKeyListener } from '../Utils/Hooks'
 import { isLetterKey } from '../Utils/Utils'
-import Cell from './Cell'
-import './Crossword.css'
+import Cell from './private/Cell'
+import './private/Crossword.css'
 
-import {WordHead, WordCollection, SelectedCellInfo, CellData, getAllCellData, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getTotalRowsCols, getCellPosesFromData, CellPos, getIncrementedOrDecrementedSelectedCell} from "./CrosswordUtils"
+import {WordHead, WordCollection, SelectedCellInfo, CellData, getAllCellData, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getTotalRowsCols, getCellPosesFromData, CellPos, getIncrementedOrDecrementedSelectedCell} from "./private/CrosswordUtils"
 import {useState, useEffect, type JSX} from "react"
 
 function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
@@ -25,35 +25,33 @@ function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
 
     useKeyListener((e: KeyboardEvent) => {
 
-        console.log(e.key);
+        if (e.key === 'Enter') {
+            setSelectedCellInfo(new SelectedCellInfo((selectedCellInfo.headIndex + 1) % wordCollection.heads.length, 0));
+            return;
+        }
 
-            if (e.key === 'Enter') {
-                setSelectedCellInfo(new SelectedCellInfo((selectedCellInfo.headIndex + 1) % wordCollection.heads.length, 0));
-                return;
-            }
+        let newLetter: string | null = null;
 
-            let newLetter: string | null = null;
+        if (e.key === 'Backspace')
+            newLetter = '';
+        else if (isLetterKey(e.key))
+            newLetter = e.key.toUpperCase();
 
-            if (e.key === 'Backspace')
-                newLetter = '';
-            else if (isLetterKey(e.key))
-                newLetter = e.key.toUpperCase();
+        if (newLetter !== null) {
+            setCellDatas((curDatas: Array<CellData>) => {
+                const newCellDatas: Array<CellData> = curDatas.map((c) => {
 
-            if (newLetter !== null) {
-                setCellDatas((curDatas: Array<CellData>) => {
-                    const newCellDatas: Array<CellData> = curDatas.map((c) => {
-
-                        // If this cell is selected
-                        if (cellPosIsSameAsSelectedCell(c.pos, wordCollection.heads, selectedCellInfo)) {
-                            return new CellData(c.pos, newLetter);
-                        }
-                        return c;
-                    });
-                    return newCellDatas;
+                    // If this cell is selected
+                    if (cellPosIsSameAsSelectedCell(c.pos, wordCollection.heads, selectedCellInfo)) {
+                        return new CellData(c.pos, newLetter);
+                    }
+                    return c;
                 });
+                return newCellDatas;
+            });
 
-                setSelectedCellInfo(getIncrementedOrDecrementedSelectedCell(newLetter !== '', selectedCellInfo, wordCollection.heads));
-            }
+            setSelectedCellInfo(getIncrementedOrDecrementedSelectedCell(newLetter !== '', selectedCellInfo, wordCollection.heads));
+        }
 
     }, [selectedCellInfo])
 
@@ -78,8 +76,6 @@ function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
 
     const cellWidthAccordingToWidth: number = screenWidth / totalRowsCols.col;
     const cellWidthAccordingToHeight: number = screenHeight / totalRowsCols.row;
-
-    console.log(screenWidth);
 
     const cellWidth: number = Math.min(cellWidthAccordingToWidth, cellWidthAccordingToHeight);
 

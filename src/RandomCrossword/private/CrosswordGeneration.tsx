@@ -1,5 +1,5 @@
-import {CellPos, WordInfo, WordLoc, WordHead} from "../Crossword/CrosswordUtils"
-import {getAllUppercaseLetters, getRandomInt, getRandomUniqueElement, getMatrix, flipCoin, getArrayWithRemovedIndices, addSetsToSet, getAddedSets, getIndicesOfCharInString, range} from "../Utils/Utils"
+import {CellPos, WordInfo, WordLoc, WordHead} from "../../Crossword/private/CrosswordUtils"
+import {getAllUppercaseLetters, getRandomInt, getRandomUniqueElement, getMatrix, flipCoin, getArrayWithRemovedIndices, addSetsToSet, getAddedSets, getIndicesOfCharInString, range} from "../../Utils/Utils"
 
 class ConnectionPartInfo {
     wordIndex: number;
@@ -42,6 +42,16 @@ class WordPlacement {
     }
 }
 
+class CellsToCheck {
+    forWord: Array<CellPos>;
+    shouldBeEmpty: Set<CellPos>;
+
+    constructor(forWord: Array<CellPos>, shouldBeEmpty: Set<CellPos>) {
+        this.forWord = forWord;
+        this.shouldBeEmpty = shouldBeEmpty;
+    }
+}
+
 class RandomBoard {
     words: Array<string>;
     availableWordIndices: Set<number>;
@@ -68,7 +78,6 @@ class RandomBoard {
 
         while (this.availableWordIndices.size > 0) {
             this.#addAddedRandomConnection();
-            console.log(this.getBoardLines());
         }
     }
 
@@ -123,57 +132,66 @@ class RandomBoard {
             this.#setLetter(cellPoses[i], word[i]);
         }
 
-        console.log('set word', placement, this.words[placement.wordIndex]);
-
         this.wordPlacements.push(placement);
         this.availableWordIndices.delete(placement.wordIndex);
     }
 
-    #getCellsToCheck(placement: WordPlacement, connectionPos: CellPos): Set<CellPos> {
+    #getCellsToCheck(placement: WordPlacement, connectionPos: CellPos): CellsToCheck {
         const word: string = this.words[placement.wordIndex];
 
-        let poses: Set<CellPos> = new Set([]);
+        let shouldBeEmptyPoses: Set<CellPos> = new Set([]);
+        let mainPoses: Array<CellPos> = [];
 
         if (placement.right) {
-            poses.add(placement.startPos.left());
-            poses.add(placement.startPos.right(word.length));
+            shouldBeEmptyPoses.add(placement.startPos.left());
+            shouldBeEmptyPoses.add(placement.startPos.right(word.length));
 
             for (let i = 0; i < word.length; i++) {
                 let thisPos: CellPos = placement.startPos.right(i);
                 if (!thisPos.isSameAs(connectionPos)) {
-                    poses.add(thisPos);
-                    poses.add(thisPos.up());
-                    poses.add(thisPos.down());
+                    mainPoses.push(thisPos);
+                    shouldBeEmptyPoses.add(thisPos.up());
+                    shouldBeEmptyPoses.add(thisPos.down());
                 }
             }
         }
         else {
-            poses.add(placement.startPos.up());
-            poses.add(placement.startPos.down(word.length));
+            shouldBeEmptyPoses.add(placement.startPos.up());
+            shouldBeEmptyPoses.add(placement.startPos.down(word.length));
 
             for (let i = 0; i < word.length; i++) {
                 let thisPos: CellPos = placement.startPos.down(i);
                 if (!thisPos.isSameAs(connectionPos)) {
-                    poses.add(thisPos);
-                    poses.add(thisPos.left());
-                    poses.add(thisPos.right());
+                    mainPoses.push(thisPos);
+                    shouldBeEmptyPoses.add(thisPos.left());
+                    shouldBeEmptyPoses.add(thisPos.right());
                 }
             }
         }
 
-        let validPoses: Set<CellPos> = new Set([]);
+        let validWordPoses: Array<CellPos> = [];
+        let validShouldBeEmptyPoses: Set<CellPos> = new Set([]);
 
         let numRows: number = this.#getNumRows();
-        for (const pos of poses)
+        for (const pos of mainPoses)
             if (this.#getActualPos(pos).inRange(numRows, this.numCols))
-                validPoses.add(pos);
+                validWordPoses.push(pos);
 
-        return validPoses;
+        for (const pos of shouldBeEmptyPoses)
+            if (this.#getActualPos(pos).inRange(numRows, this.numCols))
+                validShouldBeEmptyPoses.add(pos);
+
+        return new CellsToCheck(validWordPoses, validShouldBeEmptyPoses);
     }
 
-    #allCellsClear(poses: Set<CellPos>): boolean {
-        for (const pos of poses) {
+    #allCellsValidForPlacement(placement: WordPlacement, cellsToCheck: CellsToCheck): boolean {
+        for (const pos of cellsToCheck.shouldBeEmpty) {
             if (this.#getLetter(pos) !== ' ')
+                return false;
+        }
+
+        for (let i = 0; i < cellsToCheck.forWord.length; i++) {
+            if (this.#getLetter(cellsToCheck.forWord[i]) !== this.words[placement.wordIndex] && this.#getLetter(cellsToCheck.forWord[i]) !== ' ')
                 return false;
         }
 
@@ -181,7 +199,7 @@ class RandomBoard {
     }
 
     #placementIsValid(placement: WordPlacement, connectionPos: CellPos): boolean {
-        return this.#allCellsClear(this.#getCellsToCheck(placement, connectionPos));
+        return this.#allCellsValidForPlacement(placement, this.#getCellsToCheck(placement, connectionPos));
     }
 
     #getWordCellPoses(placement: WordPlacement): Array<CellPos> {
@@ -211,8 +229,6 @@ class RandomBoard {
 
         this.#setWord(new WordPlacement(new CellPos(0, downWordColIndex), false, initialConnection.downInfo.wordIndex));
         this.#setWord(new WordPlacement(new CellPos(rightWordRowIndex, 0), true, initialConnection.rightInfo.wordIndex));
-
-        console.log(this.getBoardLines());
     }
 
     #addAddedRandomConnection() {
@@ -231,26 +247,21 @@ class RandomBoard {
             for (const wordIndex of this.availableWordIndices) {
                 const word = this.words[wordIndex];
                 let letIndices: Array<number> = getIndicesOfCharInString(word, letter);
-                console.log(word, letter, letIndices);
 
                 for (const letIndex of letIndices) {
                     let possibleRightPlacement: WordPlacement = new WordPlacement(thisPos.left(letIndex), true, wordIndex);
                     let possibleDownPlacement: WordPlacement = new WordPlacement(thisPos.up(letIndex), false, wordIndex);
 
                     if (this.#placementIsValid(possibleRightPlacement, thisPos)) {
-                        console.log(thisPos, word, letIndex, thisPos.left(letIndex));
                         possiblePlacements.add(possibleRightPlacement);
                     }
 
                     if (this.#placementIsValid(possibleDownPlacement, thisPos)) {
-                        console.log(thisPos, word, letIndex, thisPos.up(letIndex));
                         possiblePlacements.add(possibleDownPlacement);
                     }
                 }
             }
         }
-
-        console.log('possible', possiblePlacements);
 
         return possiblePlacements;
     }
@@ -262,8 +273,6 @@ class RandomBoard {
     }
 
     #addWordPlacement(placement: WordPlacement): void {
-
-        console.log('added placement', placement);
 
         const word: string = this.words[placement.wordIndex];
         let actualStartPos: CellPos = this.#getActualPos(placement.startPos);
@@ -296,8 +305,6 @@ class RandomBoard {
         let possibles: Array<WordConnectionInfo> = this.#getPossibleInitialConnectionPairs();
 
         let elem: WordConnectionInfo = getRandomUniqueElement<WordConnectionInfo>(possibles);
-
-        console.log(possibles, elem);
 
         if (flipCoin() == "heads") // whimsy
             return elem.getSwapped();
@@ -340,7 +347,6 @@ class RandomBoard {
     }
 
     #expandLeft(num: number) {
-        console.log('added left', num)
         this.origin = this.origin.right(num);
 
         let newLetterCells: Array<string> = [];
@@ -358,7 +364,6 @@ class RandomBoard {
     }
 
     #expandRight(num: number) {
-        console.log('added right', num)
 
         let newLetterCells: Array<string> = [];
         
@@ -375,16 +380,12 @@ class RandomBoard {
     }
 
     #expandUp(num: number) {
-        console.log('added up', num)
-
         this.origin = this.origin.down(num);
 
         this.letterCells = Array<string>(num * this.numCols).fill(' ').concat(this.letterCells);
     }
 
     #expandDown(num: number) {
-        console.log('added down', num)
-
         this.letterCells = this.letterCells.concat(Array<string>(num * this.numCols).fill(' '));
     }
 }

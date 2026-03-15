@@ -1,7 +1,7 @@
-import {areLetters, getRandomUniqueElements} from "../Utils/Utils"
-import {WordHead, WordInfo, WordLoc} from "../Crossword/CrosswordUtils"
-import {getJsonFromAPI} from "../Utils/APIUtils"
-import { type SelectionOption } from "../Utils/SmartSelectionUtils";
+import {areLetters, getRandomUniqueElements} from "../../Utils/Utils"
+import {WordHead, WordInfo, WordLoc} from "../../Crossword/private/CrosswordUtils"
+import {getJsonFromAPI, getLinesFromFile} from "../../Utils/APIUtils"
+import { type SelectionOption } from "../../Utils/SmartSelectionUtils";
 import { generateCrossword } from "./CrosswordGeneration";
 
 function getWordFromTitle(title: string): string | null {
@@ -57,6 +57,7 @@ function getWordInfoFromWikiJson(pageJson: any): WordInfo | null {
   if (title === null)
     return null;
 
+  console.log('pageJson', pageJson);
   let clue: string | null = getClueFromSentence(pageJson.extract);
 
   if (clue === null)
@@ -67,7 +68,6 @@ function getWordInfoFromWikiJson(pageJson: any): WordInfo | null {
 
 function getWordInfosFromWikiJson(json: any, maxWanted: number | null = null): Array<WordInfo> {
 
-  console.log('json', json);
   let infos: Array<WordInfo> = [];
   const pages: any = json.query.pages;
   for (const pageId in pages) {
@@ -76,6 +76,7 @@ function getWordInfosFromWikiJson(json: any, maxWanted: number | null = null): A
       break;
 
     const thisPage = pages[pageId];
+    console.log(thisPage);
     let thisInfo: WordInfo | null = getWordInfoFromWikiJson(thisPage);
 
     if (thisInfo === null)
@@ -166,7 +167,9 @@ export async function getMinWikiData(wiki: string, totalRequested: number): Prom
 
     let numNeeded = totalRequested - infos.length;
 
+    console.log('random page wiki data');
     const jsonBatch: any = await getRandomPageWikiData(wiki, numNeeded * 2);
+    console.log('jsonBatch', jsonBatch);
 
     let theseInfos: Array<WordInfo> = getWordInfosFromWikiJson(jsonBatch, numNeeded);
     infos.push(...theseInfos);
@@ -200,8 +203,6 @@ export function fileLinesToWikiCategories(lines: Array<string>): Array<WikiType>
   let curWikiUrl: string = "";
   let curCats: Array<string> = [];
 
-  console.log(lines);
-
   for (let i = 0; i <= lines.length; i++) {
     if (lines[i] == "" || i == lines.length) { // blank line or end, reset
       if (collectedData) {
@@ -223,13 +224,14 @@ export function fileLinesToWikiCategories(lines: Array<string>): Array<WikiType>
     }
   }
 
-  console.log(types);
-
   return types;
 }
 
-export async function getNumRandomWordInfosFromCategory(wiki: string, category: string, num: number): Promise<Array<WordInfo>> {
-  let allPages: Array<string> = await getAllPageTitlesInCategory(wiki, category);
+export async function getNumRandomWordInfosFromCategories(wiki: string, categories: Array<string>, num: number): Promise<Array<WordInfo>> {
+  let allPages: Array<string> = [];
+  
+  for (const category of categories)
+    allPages.push(...await getAllPageTitlesInCategory(wiki, category));
 
   let selectedPageTitles: Array<string> = getRandomUniqueElements(allPages, num);
 

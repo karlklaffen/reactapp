@@ -55,24 +55,6 @@ export function getAllUppercaseLetters(): string {
     return getCharsFromCodePoints(65, 90);
 }
 
-// export function getClone<Type>(obj: Type): Type {
-//     return structuredClone(obj);
-// }
-
-// export function getRandomUniqueElements<Type>(elements: Array<Type>, num: number = 1): Array<Type> {
-//     let newList: Array<Type> = getClone(elements);
-
-//     let retElems: Array<Type> = [];
-
-//     for (let i = 0; i < num; i++) {
-//         const thisElemIndex: number = getRandomInt(elements.length);
-//         retElems.push(newList[thisElemIndex]);
-//         newList.splice(thisElemIndex, 1);
-//     }
-
-//     return retElems;
-// }
-
 export function getRandomUniqueElements<Type>(elements: Array<Type>, num: number): Array<Type> {
     let availableIndices: Array<number> = range(elements.length);
 
@@ -196,6 +178,15 @@ export function getCheckedRadioId(name: string): string | null {
   let thisId: string | undefined = getCheckedRadio(name)?.id;
 
   return thisId == undefined ? null : thisId;
+}
+
+export function getInputLabelText(inputElement: HTMLInputElement): string | null {
+    const labels = inputElement.labels;
+
+    if (labels === null)
+        return null;
+    
+    return labels[0].innerText;
 }
 
 export function getWithDefault<T>(value: T | undefined, def: T): T {

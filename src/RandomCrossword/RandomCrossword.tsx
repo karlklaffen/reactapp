@@ -1,31 +1,33 @@
 import { useEffect, useState, type JSX } from 'react'
 import {areLetters, getCheckedRadio, getWithDefault} from "../Utils/Utils"
-import {WordInfo, WordHead, CellPos, WordLoc, WordCollection} from "../Crossword/CrosswordUtils"
+import {WordInfo, WordHead, CellPos, WordLoc, WordCollection} from "../Crossword/private/CrosswordUtils"
 import {getJsonFromAPI, setJsonFromAPI, getLinesFromFile} from "../Utils/APIUtils"
-import { generateCrossword } from './CrosswordGeneration'
-import {getMinWikiData, getNumRandomWordInfosFromCategory, type WikiType, type WikiTypeData, getWikiTypeByDisplayName} from "./RandomCrosswordUtils"
+import { generateCrossword } from './private/CrosswordGeneration'
+import {type WikiType, type WikiTypeData} from "./private/RandomCrosswordUtils"
 
-import {generateRandomWordHeads} from "./GenerateRandomWordHeads"
+import {generateRandomWordHeads} from "./private/GenerateRandomWordHeads"
 
 import SmartSelection from '../Utils/SmartSelection'
-import { SelectionGroup, type SelectionOption } from '../Utils/SmartSelectionUtils'
+import { SelectionGroup, SelectionGroupProxy, type SelectionOption } from '../Utils/SmartSelectionUtils'
 import Crossword from '../Crossword/Crossword'
 
 function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wikiTypes: Array<WikiType>, minNumAnswers: number, maxNumAnswers: number}): JSX.Element {
   
   const [selectedWikiUrl, setSelectedWikiUrl] = useState<string>("");
-  const [selectedCategoryName, setSelectedCategoryName] = useState<string>("");
+  const [selectedCategoryNames, setSelectedCategoryNames] = useState<Array<string>>([]);
   const [numAnswers, setNumAnswers] = useState<number>((minNumAnswers + maxNumAnswers) / 2);
   const [generatingCrossword, setGeneratingCrossword] = useState<boolean>(false);
   const [hasCrossword, setHasCrossword] = useState<boolean>(false);
 
   const [wordHeads, setWordHeads] = useState<Array<WordHead>>([]);
 
+  console.log(selectedCategoryNames);
+
   if (wikiTypes.length == 0)
     return <div>No Wikis to generate crossword</div>;
 
 
-  let crosswordJSX = wordHeads.length == 0 ? <div>No Crossword</div> :
+  let crosswordJSX = wordHeads.length === 0 ? <div>No Crossword</div> :
     <Crossword wordHeads={wordHeads} />
 
   return (
@@ -34,11 +36,11 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
       <input type="button" value="Generate Crossword" disabled={generatingCrossword} onClick={async () => {
         setGeneratingCrossword(true);
         setHasCrossword(true);
-        setWordHeads(await generateRandomWordHeads(selectedWikiUrl, selectedCategoryName, numAnswers));
+        setWordHeads(await generateRandomWordHeads(selectedWikiUrl, selectedCategoryNames, numAnswers));
         setGeneratingCrossword(false);
       }}/>
 
-      <SmartSelection<WikiTypeData> initialGroup={new SelectionGroup('Wikis:', 'radio',
+      <SmartSelection<WikiTypeData> initialGroup={new SelectionGroup('Wikis:', 'wikis', 'radio',
 
         wikiTypes.map((type: WikiType) => {
           return {displayName: type.displayName, data: {url: type.url, categoryNames: type.categoryNames}};
@@ -46,24 +48,38 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
 
         new Set([0]),
 
-        (selectedOption: SelectionOption<WikiTypeData>, _: boolean) => {
+        (_: SelectionGroupProxy<WikiTypeData>, selectedOption: SelectionOption<WikiTypeData>) => {
           setSelectedWikiUrl(selectedOption.data.url);
         },
         
         (selectedOption: SelectionOption<WikiTypeData>) => {
 
-          return <SmartSelection<null> initialGroup={new SelectionGroup<null>('Categories:', 'radio',
+          return <SmartSelection<null> initialGroup={new SelectionGroup<null>('Categories:', `${selectedOption.displayName}`, 'checkbox',
             
             selectedOption.data.categoryNames.map((catName: string) => {
-              console.log(selectedOption.displayName);
 
               return {displayName: catName, data: null};
             }),
 
             new Set([0]),
 
-            (selectedOption: SelectionOption<null>, _: boolean) => {
-              setSelectedCategoryName(selectedOption.displayName);
+            (proxy: SelectionGroupProxy<null>, changedOption: SelectionOption<null>, selected: boolean) => {
+              if (selected) {
+                if (changedOption.displayName == 'All') {
+                  proxy.setAllOnlySelectedByName(['All'], true);
+                  setSelectedCategoryNames(selectedOption.data.categoryNames.filter((val: string) => val !== 'All'));
+                  // TODO: Add ability to pass in callback function that can set this state
+                  console.log('set all');
+                  return;
+                }
+                else {
+                  proxy.setAllSelectedByName(['All'], false);
+                }
+              }
+              
+              setSelectedCategoryNames(proxy.getSelectedOptions().map((option: SelectionOption<null>) => {
+                return option.displayName;
+              }));
             }
           )} />
         }
