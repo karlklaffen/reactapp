@@ -1,5 +1,5 @@
 import {type JSX} from "react"
-import { getInputLabelText } from "./Utils";
+import { allInArray, arraysContainSameElems, getInputLabelText } from "./Utils";
 
 export type SelectionOption<T> = {
     
@@ -50,21 +50,15 @@ export class SelectionGroup<T> {
         return indices;
     }
 
-    getSelectedUnselectedOptions(): {selected: Array<SelectionOption<T>>, unselected: Array<SelectionOption<T>>} {
+    getSelectedOptions(selected: boolean): Array<SelectionOption<T>> {
         let selectedOptions: Array<SelectionOption<T>> = [];
-        let unselectedOptions: Array<SelectionOption<T>> = [];
         const allElems: Array<HTMLInputElement> = this.getHTMLOptions();
         for (let i = 0; i < allElems.length; i++) {
-            if (allElems[i].checked)
+            if (selected === allElems[i].checked)
                 selectedOptions.push(this.options[i]);
-            else
-                unselectedOptions.push(this.options[i]);
         }
 
-        return {
-            selected: selectedOptions,
-            unselected: unselectedOptions
-        };
+        return selectedOptions;
     }
 
     getIndexOfOptionByName(displayName: string): number {
@@ -132,12 +126,16 @@ export class SelectionGroupProxy<T> {
         this.group = group;
     }
 
+    getOptionDisplayNames(options: Array<SelectionOption<T>>): Array<string> {
+        return options.map((val: SelectionOption<T>) => val.displayName);
+    }
+
     getSelectedOptions(): Array<SelectionOption<T>> {
-        return this.group.getSelectedUnselectedOptions().selected;
+        return this.group.getSelectedOptions(true);
     }
 
     getUnselectedOptions(): Array<SelectionOption<T>> {
-        return this.group.getSelectedUnselectedOptions().unselected;
+        return this.group.getSelectedOptions(false);
     }
 
     setSelected(option: SelectionOption<T>, selected: boolean): void {
@@ -165,4 +163,22 @@ export class SelectionGroupProxy<T> {
             this.setSelected(option, select === displayNames.includes(option.displayName));
         }
     }
+
+    optionsSelectedByNames(displayNames: Array<string>, selected: boolean): boolean {
+        const allSelected: Array<SelectionOption<T>> = this.group.getSelectedOptions(selected);
+
+        return allInArray(this.getOptionDisplayNames(allSelected), displayNames);
+    }
+
+    onlyOptionsSelectedByNames(displayNames: Array<string>, selected: boolean): boolean {
+        const allSelected: Array<SelectionOption<T>> = this.group.getSelectedOptions(selected);
+
+        return arraysContainSameElems(this.getOptionDisplayNames(allSelected), displayNames);
+    }
+
+    getAllOptions(excludeNames: Array<string>): Array<SelectionOption<T>> {
+        return this.group.options.filter((option: SelectionOption<T>) => !excludeNames.includes(option.displayName));
+    }
+
+
 }

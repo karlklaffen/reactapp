@@ -70,16 +70,16 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
                   setSelectedCategoryNames(selectedOption.data.categoryNames.filter((val: string) => val !== 'All'));
                   // TODO: Add ability to pass in callback function that can set this state
                   console.log('set all');
-                  return;
                 }
                 else {
                   proxy.setAllSelectedByName(['All'], false);
                 }
               }
               
-              setSelectedCategoryNames(proxy.getSelectedOptions().map((option: SelectionOption<null>) => {
-                return option.displayName;
-              }));
+              if (proxy.optionsSelectedByNames(['All'], true))
+                setSelectedCategoryNames(proxy.getOptionDisplayNames(proxy.getAllOptions(['All'])));
+              else
+                setSelectedCategoryNames(proxy.getOptionDisplayNames(proxy.getSelectedOptions()));
             }
           )} />
         }

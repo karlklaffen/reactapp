@@ -185,7 +185,7 @@ export function getInputLabelText(inputElement: HTMLInputElement): string | null
 
     if (labels === null)
         return null;
-    
+
     return labels[0].innerText;
 }
 
@@ -201,4 +201,40 @@ export function getElementsFromIndices<T>(elements: Array<T>, indices: Set<numbe
     }
 
     return theseElems;
+}
+
+export function allInArray<T>(main: Array<T>, sub: Array<T>) {
+    for (const elem of sub)
+        if (!main.includes(elem))
+            return false;
+    
+    return true;
+}
+
+export function arraysContainSameElems<T>(first: Array<T>, second: Array<T>) {
+    if (first.length !== second.length)
+        return false;
+
+    let hasList: Array<boolean> = Array(first.length).fill(false);
+
+    let fillFunc = (secondVal: T) => {
+        for (let i = 0; i < first.length; i++) {
+            if (hasList[i])
+                continue;
+
+            if (first[i] === secondVal) {
+                hasList[i] = true;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    for (const val of second) {
+        if (!fillFunc(val))
+            return false;
+    }
+
+    return hasList.every((val: boolean) => val);
 }
