@@ -55,6 +55,9 @@ function getWordInfoFromWikiJson(pageJson: any): WordInfo | null {
   if (title === null)
     return null;
 
+  if (!pageJson.extract)
+    return null;
+
   console.log('pageJson', pageJson);
   let clue: string | null = getClueFromSentence(pageJson.extract);
 
