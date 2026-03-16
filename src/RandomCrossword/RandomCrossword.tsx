@@ -7,21 +7,18 @@ import {type WikiType, type WikiTypeData} from "./private/RandomCrosswordUtils"
 
 import {generateRandomWordHeads} from "./private/GenerateRandomWordHeads"
 
-import SmartSelection from '../Utils/SmartSelection'
-import { SelectionGroup, SelectionGroupProxy, type SelectionOption } from '../Utils/SmartSelectionUtils'
+import SmartSelection from '../Utils/SmartInputs/SmartSelection'
+import { SmartSelectionGroup, SmartSelectionProxy, SmartSelectionTypes, type SmartSelectionOption } from '../Utils/SmartInputs/SmartSelectionUtils'
 import Crossword from '../Crossword/Crossword'
 
 function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wikiTypes: Array<WikiType>, minNumAnswers: number, maxNumAnswers: number}): JSX.Element {
   
   const [selectedWikiUrl, setSelectedWikiUrl] = useState<string>("");
   const [selectedCategoryNames, setSelectedCategoryNames] = useState<Array<string>>([]);
-  const [numAnswers, setNumAnswers] = useState<number>((minNumAnswers + maxNumAnswers) / 2);
+  const [numAnswers, setNumAnswers] = useState<number>(Math.floor((minNumAnswers + maxNumAnswers) / 2));
   const [generatingCrossword, setGeneratingCrossword] = useState<boolean>(false);
-  const [hasCrossword, setHasCrossword] = useState<boolean>(false);
 
   const [wordHeads, setWordHeads] = useState<Array<WordHead>>([]);
-
-  console.log(selectedCategoryNames);
 
   if (wikiTypes.length == 0)
     return <div>No Wikis to generate crossword</div>;
@@ -35,12 +32,20 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
       {crosswordJSX}
       <input type="button" value="Generate Crossword" disabled={generatingCrossword} onClick={async () => {
         setGeneratingCrossword(true);
-        setHasCrossword(true);
         setWordHeads(await generateRandomWordHeads(selectedWikiUrl, selectedCategoryNames, numAnswers));
         setGeneratingCrossword(false);
       }}/>
+      <p></p>
+      Number of Answers:
+      <br></br>
+      <label>
+        <input type="range" defaultValue={numAnswers} min={minNumAnswers} max={maxNumAnswers} onChange={(e: any) => {
+          setNumAnswers(e.target.value);
+        }} />
+        {numAnswers}
+      </label>
 
-      <SmartSelection<WikiTypeData> initialGroup={new SelectionGroup('Wikis:', 'wikis', 'radio',
+      <SmartSelection<WikiTypeData> group={new SmartSelectionGroup('Wikis:', 'wikis', SmartSelectionTypes.RADIO,
 
         wikiTypes.map((type: WikiType) => {
           return {id: type.displayName, displayName: type.displayName, data: {url: type.url, categoryNames: type.categoryNames}};
@@ -48,13 +53,13 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
 
         new Set([0]),
 
-        (selectedOption: SelectionOption<WikiTypeData>) => {
+        (selectedOption: SmartSelectionOption<WikiTypeData>) => {
           setSelectedWikiUrl(selectedOption.data.url);
         },
         
-        (selectedOption: SelectionOption<WikiTypeData>) => {
+        (selectedOption: SmartSelectionOption<WikiTypeData>) => {
 
-          return <SmartSelection<null> initialGroup={new SelectionGroup<null>('Categories:', `${selectedOption.displayName}`, 'checkbox',
+          return <SmartSelection<null> group={new SmartSelectionGroup<null>('Categories:', `${selectedOption.displayName}`, SmartSelectionTypes.CHECKBOX,
             
             selectedOption.data.categoryNames.map((catName: string) => {
 
@@ -63,14 +68,13 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
 
             new Set([0]),
 
-            (changedOption: SelectionOption<null>, selected: boolean, proxy: SelectionGroupProxy<null>) => {
+            (changedOption: SmartSelectionOption<null>, selected: boolean, proxy: SmartSelectionProxy<null>) => {
 
               if (changedOption.id === 'All') {
 
                 if (selected) {
                   proxy.setAllSelected();
                   proxy.setDisabledExceptByIDs(['All']);
-                  // setSelectedCategoryNames(proxy.getOptionIDs(proxy.getAllOptionsExcept(['All'])));
                   setSelectedCategoryNames(['All']);
                 }
                 else {

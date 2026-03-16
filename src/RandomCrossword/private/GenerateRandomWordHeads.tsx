@@ -8,13 +8,10 @@ export async function generateRandomWordHeads(wikiURL: string, categoryNames: Ar
   
   let wordInfos: Array<WordInfo> = [];
 
-  if (categoryNames.includes("All")) {
-    console.log('All');
+  if (categoryNames.includes("All"))
     wordInfos = await getMinWikiData(wikiURL, numAnswers);
-  }
-  else {
+  else
     wordInfos = await getNumRandomWordInfosFromCategories(wikiURL, categoryNames, numAnswers);
-  }
 
   let strs: Array<string> = [];
   for (const info of wordInfos)

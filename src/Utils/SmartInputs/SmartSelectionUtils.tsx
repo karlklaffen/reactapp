@@ -1,27 +1,34 @@
 import {type JSX} from "react"
-import { allInArray, arraysContainSameElems, arrayElementsUnique } from "./Utils";
+import { allInArray, arraysContainSameElems, arrayElementsUnique } from "../Utils";
 
-export type SelectionOption<T> = {
+export type SmartSelectionOption<T> = {
     
     id: string;
     displayName: string;
     data: T;
 }
 
-export class SelectionGroup<T> {
+export type SmartSelectionType = {
+    type: string;
+}
+
+export class SmartSelectionTypes {
+    static RADIO = {type: "radio"};
+    static CHECKBOX = {type: "checkbox"};
+}
+
+export class SmartSelectionGroup<T> {
     name: string;
     id: string;
-    type: string;
-    options: Array<SelectionOption<T>>;
+    type: SmartSelectionType;
+    options: Array<SmartSelectionOption<T>>;
     defaultSelectedIndices: Set<number>;
-    callbackFunc: (changedOption: SelectionOption<T>, changeSelected: boolean, proxy: SelectionGroupProxy<T>) => void;
-    addJSXFunc: (selectedOption: SelectionOption<T>) => JSX.Element;
+    callbackFunc: (changedOption: SmartSelectionOption<T>, changeSelected: boolean, proxy: SmartSelectionProxy<T>) => void;
+    addJSXFunc: (selectedOption: SmartSelectionOption<T>) => JSX.Element;
 
-    parallelHTMLOptions: Array<HTMLInputElement>;
+    proxy: SmartSelectionProxy<T>;
 
-    proxy: SelectionGroupProxy<T>;
-
-    constructor(name: string, id: string, type: string, options: Array<SelectionOption<T>>, defaultSelectedIndices: Set<number>, callbackFunc: (changedOption: SelectionOption<T>, selected: boolean, proxy: SelectionGroupProxy<T>) => void, addJSXFunc: (selectedOption: SelectionOption<T>) => JSX.Element = (_: SelectionOption<T>) => {return <></>}) {
+    constructor(name: string, id: string, type: SmartSelectionType, options: Array<SmartSelectionOption<T>>, defaultSelectedIndices: Set<number>, callbackFunc: (changedOption: SmartSelectionOption<T>, selected: boolean, proxy: SmartSelectionProxy<T>) => void, addJSXFunc: (selectedOption: SmartSelectionOption<T>) => JSX.Element = (_: SmartSelectionOption<T>) => {return <></>}) {
         
         this.verifyOptionIDsUnique(options);
 
@@ -33,13 +40,11 @@ export class SelectionGroup<T> {
         this.callbackFunc = callbackFunc;
         this.addJSXFunc = addJSXFunc;
 
-        this.parallelHTMLOptions = [];
-
-        this.proxy = new SelectionGroupProxy<T>(this);
+        this.proxy = new SmartSelectionProxy<T>(this);
     }
 
-    verifyOptionIDsUnique(options: Array<SelectionOption<T>>): void {
-        if (!arrayElementsUnique(options.map((option: SelectionOption<T>) => option.id)))
+    verifyOptionIDsUnique(options: Array<SmartSelectionOption<T>>): void {
+        if (!arrayElementsUnique(options.map((option: SmartSelectionOption<T>) => option.id)))
             throw Error('Option IDs not unique');
     }
 
@@ -58,8 +63,8 @@ export class SelectionGroup<T> {
         return indices;
     }
 
-    getSelectedOptions(selected: boolean): Array<SelectionOption<T>> {
-        let selectedOptions: Array<SelectionOption<T>> = [];
+    getSelectedOptions(selected: boolean): Array<SmartSelectionOption<T>> {
+        let selectedOptions: Array<SmartSelectionOption<T>> = [];
         const allElems: Array<HTMLInputElement> = this.getAllHTMLOptions();
         for (let i = 0; i < allElems.length; i++) {
             if (selected === allElems[i].checked)
@@ -92,21 +97,21 @@ export class SelectionGroup<T> {
         return options;
     }
 
-    getHTMLInputByOption(option: SelectionOption<T>): HTMLInputElement {
+    getHTMLInputByOption(option: SmartSelectionOption<T>): HTMLInputElement {
         return this.getAllHTMLOptions()[this.options.indexOf(option)];
     }
 
-    getHTMLInputsByOptions(theseOptions: Array<SelectionOption<T>>): Array<HTMLInputElement> {
+    getHTMLInputsByOptions(theseOptions: Array<SmartSelectionOption<T>>): Array<HTMLInputElement> {
         let allHTMLOptions: Array<HTMLInputElement> = this.getAllHTMLOptions();
 
-        return theseOptions.map((thisOption: SelectionOption<T>) => allHTMLOptions[this.options.indexOf(thisOption)]);
+        return theseOptions.map((thisOption: SmartSelectionOption<T>) => allHTMLOptions[this.options.indexOf(thisOption)]);
     }
 
-    getOptionsFromIDs(ids: Array<string>): Array<SelectionOption<T>> {
-        let retOptions: Array<SelectionOption<T>> = [];
+    getOptionsFromIDs(ids: Array<string>): Array<SmartSelectionOption<T>> {
+        let retOptions: Array<SmartSelectionOption<T>> = [];
 
         for (const id of ids) {
-            let thisOption: SelectionOption<T> | undefined = this.options.find((val: SelectionOption<T>) => val.id === id);
+            let thisOption: SmartSelectionOption<T> | undefined = this.options.find((val: SmartSelectionOption<T>) => val.id === id);
 
             if (thisOption === undefined)
                 throw Error('id not found');
@@ -117,7 +122,7 @@ export class SelectionGroup<T> {
         return retOptions;
     }
 
-    setOptionsSelected(options: Array<SelectionOption<T>>, selected: boolean, doCallback: boolean): void {
+    setOptionsSelected(options: Array<SmartSelectionOption<T>>, selected: boolean, doCallback: boolean): void {
         let inputs: Array<HTMLInputElement> = this.getHTMLInputsByOptions(options);
 
         for (let i = 0; i < inputs.length; i++) {
@@ -128,7 +133,7 @@ export class SelectionGroup<T> {
         }
     }
 
-    setOptionsEnabled(options: Array<SelectionOption<T>>, enabled: boolean): void {
+    setOptionsEnabled(options: Array<SmartSelectionOption<T>>, enabled: boolean): void {
         let inputs: Array<HTMLInputElement> = this.getHTMLInputsByOptions(options);
 
         for (let i = 0; i < inputs.length; i++)
@@ -139,11 +144,11 @@ export class SelectionGroup<T> {
         let optionArray: Array<JSX.Element> = [];
 
         for (let i = 0; i < this.options.length; i++) {
-            const option: SelectionOption<T> = this.options[i];
+            const option: SmartSelectionOption<T> = this.options[i];
             
             optionArray.push(<div key={option.displayName}>            
                     <label>
-                        <input type={this.type} name={this.getUniqueName()} defaultChecked={this.defaultSelectedIndices.has(i)} onChange={(_: any) => {
+                        <input type={this.type.type} name={this.getUniqueName()} defaultChecked={this.defaultSelectedIndices.has(i)} onChange={(_: any) => {
                             setSelectedIndices(this.getSelectedIndices());
                             this.executeCallback(i);
                         }} />
@@ -166,38 +171,38 @@ export class SelectionGroup<T> {
     }
 }
 
-export class SelectionGroupProxy<T> {
-    group: SelectionGroup<T>
+export class SmartSelectionProxy<T> {
+    group: SmartSelectionGroup<T>
 
-    constructor(group: SelectionGroup<T>) {
+    constructor(group: SmartSelectionGroup<T>) {
         this.group = group;
     }
 
-    getAllOptions(): Array<SelectionOption<T>> {
+    getAllOptions(): Array<SmartSelectionOption<T>> {
         return this.group.options;
     }
 
-    getAllOptionsExcept(excludeIDs: Array<string>): Array<SelectionOption<T>> {
-        return this.group.options.filter((option: SelectionOption<T>) => !excludeIDs.includes(option.id));
+    getAllOptionsExcept(excludeIDs: Array<string>): Array<SmartSelectionOption<T>> {
+        return this.group.options.filter((option: SmartSelectionOption<T>) => !excludeIDs.includes(option.id));
     }
 
-    getOptionIDs(options: Array<SelectionOption<T>>): Array<string> {
-        return options.map((val: SelectionOption<T>) => val.id);
+    getOptionIDs(options: Array<SmartSelectionOption<T>>): Array<string> {
+        return options.map((val: SmartSelectionOption<T>) => val.id);
     }
 
-    getSelectedOptions(): Array<SelectionOption<T>> {
+    getSelectedOptions(): Array<SmartSelectionOption<T>> {
         return this.group.getSelectedOptions(true);
     }
 
-    getUnselectedOptions(): Array<SelectionOption<T>> {
+    getUnselectedOptions(): Array<SmartSelectionOption<T>> {
         return this.group.getSelectedOptions(false);
     }
 
-    setSelected(option: SelectionOption<T>, selected: boolean): void {
+    setSelected(option: SmartSelectionOption<T>, selected: boolean): void {
         this.group.setOptionsSelected([option], selected, false);
     }
 
-    setUnselected(option: SelectionOption<T>): void {
+    setUnselected(option: SmartSelectionOption<T>): void {
         this.setSelected(option, false);
     }
 
@@ -240,7 +245,7 @@ export class SelectionGroupProxy<T> {
     }
 
     optionsSelectedByIDs(optionIDs: Array<string>, selected: boolean): boolean {
-        const allSelected: Array<SelectionOption<T>> = this.group.getSelectedOptions(selected);
+        const allSelected: Array<SmartSelectionOption<T>> = this.group.getSelectedOptions(selected);
 
         return allInArray(this.getOptionIDs(allSelected), optionIDs);
     }
@@ -250,7 +255,7 @@ export class SelectionGroupProxy<T> {
     }
 
     onlyOptionsSelectedByIDs(optionIDs: Array<string>, selected: boolean): boolean {
-        const allSelected: Array<SelectionOption<T>> = this.group.getSelectedOptions(selected);
+        const allSelected: Array<SmartSelectionOption<T>> = this.group.getSelectedOptions(selected);
 
         return arraysContainSameElems(this.getOptionIDs(allSelected), optionIDs);
     }
@@ -259,11 +264,11 @@ export class SelectionGroupProxy<T> {
         return this.onlyOptionsSelectedByIDs(optionIDs, false);
     }
 
-    setEnabled(option: SelectionOption<T>, enable: boolean): void {
+    setEnabled(option: SmartSelectionOption<T>, enable: boolean): void {
         this.group.getHTMLInputByOption(option).disabled = !enable;
     }
 
-    setDisabled(option: SelectionOption<T>): void {
+    setDisabled(option: SmartSelectionOption<T>): void {
         this.setEnabled(option, false);
     }
 

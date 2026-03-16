@@ -58,7 +58,6 @@ function getWordInfoFromWikiJson(pageJson: any): WordInfo | null {
   if (!pageJson.extract)
     return null;
 
-  console.log('pageJson', pageJson);
   let clue: string | null = getClueFromSentence(pageJson.extract);
 
   if (clue === null)
@@ -77,7 +76,6 @@ function getWordInfosFromWikiJson(json: any, maxWanted: number | null = null): A
       break;
 
     const thisPage = pages[pageId];
-    console.log(thisPage);
     let thisInfo: WordInfo | null = getWordInfoFromWikiJson(thisPage);
 
     if (thisInfo === null)
@@ -168,9 +166,7 @@ export async function getMinWikiData(wiki: string, totalRequested: number): Prom
 
     let numNeeded = totalRequested - infos.length;
 
-    console.log('random page wiki data');
     const jsonBatch: any = await getRandomPageWikiData(wiki, numNeeded * 2);
-    console.log('jsonBatch', jsonBatch);
 
     let theseInfos: Array<WordInfo> = getWordInfosFromWikiJson(jsonBatch, numNeeded);
     infos.push(...theseInfos);

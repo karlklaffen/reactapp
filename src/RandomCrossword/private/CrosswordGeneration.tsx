@@ -395,7 +395,5 @@ export function generateCrossword(words: Array<string>): Array<WordLoc> { // ret
 
     let board: RandomBoard = new RandomBoard(words);
 
-    console.log('final board', board.getBoardLines());
-
     return board.getLocs();
 }
