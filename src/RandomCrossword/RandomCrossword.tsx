@@ -43,12 +43,12 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
       <SmartSelection<WikiTypeData> initialGroup={new SelectionGroup('Wikis:', 'wikis', 'radio',
 
         wikiTypes.map((type: WikiType) => {
-          return {displayName: type.displayName, data: {url: type.url, categoryNames: type.categoryNames}};
+          return {id: type.displayName, displayName: type.displayName, data: {url: type.url, categoryNames: type.categoryNames}};
         }),
 
         new Set([0]),
 
-        (_: SelectionGroupProxy<WikiTypeData>, selectedOption: SelectionOption<WikiTypeData>) => {
+        (selectedOption: SelectionOption<WikiTypeData>) => {
           setSelectedWikiUrl(selectedOption.data.url);
         },
         
@@ -58,28 +58,31 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
             
             selectedOption.data.categoryNames.map((catName: string) => {
 
-              return {displayName: catName, data: null};
+              return {id: catName, displayName: catName, data: null};
             }),
 
             new Set([0]),
 
-            (proxy: SelectionGroupProxy<null>, changedOption: SelectionOption<null>, selected: boolean) => {
-              if (selected) {
-                if (changedOption.displayName == 'All') {
-                  proxy.setAllOnlySelectedByName(['All'], true);
-                  setSelectedCategoryNames(selectedOption.data.categoryNames.filter((val: string) => val !== 'All'));
-                  // TODO: Add ability to pass in callback function that can set this state
-                  console.log('set all');
+            (changedOption: SelectionOption<null>, selected: boolean, proxy: SelectionGroupProxy<null>) => {
+
+              if (changedOption.id === 'All') {
+
+                if (selected) {
+                  proxy.setAllSelected();
+                  proxy.setDisabledExceptByIDs(['All']);
+                  // setSelectedCategoryNames(proxy.getOptionIDs(proxy.getAllOptionsExcept(['All'])));
+                  setSelectedCategoryNames(['All']);
                 }
                 else {
-                  proxy.setAllSelectedByName(['All'], false);
+                  proxy.setAllEnabled();
+                  proxy.setAllUnselected();
+                  setSelectedCategoryNames([]);
                 }
+
+                return;
               }
-              
-              if (proxy.optionsSelectedByNames(['All'], true))
-                setSelectedCategoryNames(proxy.getOptionDisplayNames(proxy.getAllOptions(['All'])));
-              else
-                setSelectedCategoryNames(proxy.getOptionDisplayNames(proxy.getSelectedOptions()));
+
+              setSelectedCategoryNames(proxy.getOptionIDs(proxy.getSelectedOptions()));
             }
           )} />
         }

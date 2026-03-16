@@ -1,4 +1,3 @@
-import {getJsonFromAPI} from "./APIUtils"
 
 export function isLetterKey(keyStr: string): boolean {
     let code: number = keyStr.charCodeAt(0);
@@ -237,4 +236,8 @@ export function arraysContainSameElems<T>(first: Array<T>, second: Array<T>) {
     }
 
     return hasList.every((val: boolean) => val);
+}
+
+export function arrayElementsUnique<T>(arr: Array<T>): boolean {
+    return (new Set(arr)).size === arr.length;
 }

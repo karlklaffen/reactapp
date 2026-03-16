@@ -1,8 +1,6 @@
 import {areLetters, getRandomUniqueElements} from "../../Utils/Utils"
-import {WordHead, WordInfo, WordLoc} from "../../Crossword/private/CrosswordUtils"
-import {getJsonFromAPI, getLinesFromFile} from "../../Utils/APIUtils"
-import { type SelectionOption } from "../../Utils/SmartSelectionUtils";
-import { generateCrossword } from "./CrosswordGeneration";
+import {WordInfo} from "../../Crossword/private/CrosswordUtils"
+import {getJsonFromAPI} from "../../Utils/APIUtils"
 
 function getWordFromTitle(title: string): string | null {
   if (title.length > 25)
