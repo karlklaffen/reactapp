@@ -5,7 +5,7 @@ import RandomCrosswordFromFile from '../RandomCrossword/RandomCrosswordFromFile'
 function App() {
 
   return <div>
-    <RandomCrosswordFromFile fileName="wikis.txt" />
+    <RandomCrosswordFromFile fileName="config.txt" />
   </div>
 }
 

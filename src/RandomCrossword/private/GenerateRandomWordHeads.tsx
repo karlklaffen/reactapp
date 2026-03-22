@@ -1,8 +1,6 @@
-import {type JSX, useState, useEffect} from "react"
 import { WordHead, WordLoc, type WordInfo } from "../../Crossword/private/CrosswordUtils";
 import { getMinWikiData, getNumRandomWordInfosFromCategories } from "./RandomCrosswordUtils";
 import { generateCrossword } from "./CrosswordGeneration";
-import Crossword from "../../Crossword/Crossword";
 
 export async function generateRandomWordHeads(wikiURL: string, categoryNames: Array<string>, numAnswers: number): Promise<Array<WordHead>> {
   

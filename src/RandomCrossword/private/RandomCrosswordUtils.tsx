@@ -192,7 +192,13 @@ export type WikiInfo = {
   url: string;
 }
 
-export function fileLinesToWikiCategories(lines: Array<string>): Array<WikiType> {
+export type RandomCrosswordConfigSpec = {
+  wikiTypes: Array<WikiType>;
+  minNumAnswers: number;
+  maxNumAnswers: number;
+}
+
+export function configSpecsFromFileLines(lines: Array<string>): RandomCrosswordConfigSpec {
   let types: Array<WikiType> = new Array<WikiType>();
 
   let collectedData: boolean = false;
@@ -200,7 +206,9 @@ export function fileLinesToWikiCategories(lines: Array<string>): Array<WikiType>
   let curWikiUrl: string = "";
   let curCats: Array<string> = [];
 
-  for (let i = 0; i <= lines.length; i++) {
+  let [minNumAnswers, maxNumAnswers] = lines[0].split(' ').map((val: string) => parseInt(val));
+
+  for (let i = 1; i <= lines.length; i++) {
     if (lines[i] == "" || i == lines.length) { // blank line or end, reset
       if (collectedData) {
         types.push({displayName: curWikiName, url: curWikiUrl, categoryNames: curCats});
@@ -221,7 +229,7 @@ export function fileLinesToWikiCategories(lines: Array<string>): Array<WikiType>
     }
   }
 
-  return types;
+  return {wikiTypes: types, minNumAnswers: minNumAnswers, maxNumAnswers: maxNumAnswers};
 }
 
 export async function getNumRandomWordInfosFromCategories(wiki: string, categories: Array<string>, num: number): Promise<Array<WordInfo>> {

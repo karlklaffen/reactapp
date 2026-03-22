@@ -1,5 +1,5 @@
-import {CellPos, WordInfo, WordLoc, WordHead} from "../../Crossword/private/CrosswordUtils"
-import {getAllUppercaseLetters, getRandomInt, getRandomUniqueElement, getMatrix, flipCoin, getArrayWithRemovedIndices, addSetsToSet, getAddedSets, getIndicesOfCharInString, range} from "../../Utils/Utils"
+import {CellPos, WordLoc} from "../../Crossword/private/CrosswordUtils"
+import {getRandomUniqueElement, flipCoin, getIndicesOfCharInString, range} from "../../Utils/Utils"
 
 class ConnectionPartInfo {
     wordIndex: number;
@@ -136,70 +136,80 @@ class RandomBoard {
         this.availableWordIndices.delete(placement.wordIndex);
     }
 
-    #getCellsToCheck(placement: WordPlacement, connectionPos: CellPos): CellsToCheck {
-        const word: string = this.words[placement.wordIndex];
+    #cellInRange(cellPos: CellPos): boolean {
+        return this.#getActualPos(cellPos).inRange(this.#getNumRows(), this.numCols);
+    }
 
-        let shouldBeEmptyPoses: Set<CellPos> = new Set([]);
-        let mainPoses: Array<CellPos> = [];
+    #placementValid(placement: WordPlacement, connectionPos: CellPos): boolean {
+
+        const word: string = this.words[placement.wordIndex];
+        let shouldBeEmptyCellPoses: Array<CellPos> = [];
+        let shouldBeFilledCellPoses: Array<CellPos> = [];
+
 
         if (placement.right) {
-            shouldBeEmptyPoses.add(placement.startPos.left());
-            shouldBeEmptyPoses.add(placement.startPos.right(word.length));
-
+            shouldBeEmptyCellPoses.push(placement.startPos.left());
+            shouldBeEmptyCellPoses.push(placement.startPos.right(word.length));
             for (let i = 0; i < word.length; i++) {
-                let thisPos: CellPos = placement.startPos.right(i);
-                if (!thisPos.isSameAs(connectionPos)) {
-                    mainPoses.push(thisPos);
-                    shouldBeEmptyPoses.add(thisPos.up());
-                    shouldBeEmptyPoses.add(thisPos.down());
+
+                const thisPos: CellPos = placement.startPos.right(i);
+
+                if (thisPos.isSameAs(connectionPos) || !this.#cellInRange(thisPos))
+                    continue;
+
+                const thisLetter: string = this.#getLetter(thisPos)
+                
+                if (thisLetter === ' ') { // needs to be nothing above and below
+                    shouldBeEmptyCellPoses.push(thisPos.up());
+                    shouldBeEmptyCellPoses.push(thisPos.down());
+                }
+                else if (thisLetter === word[i]) { // needs to be something above and below
+                    shouldBeFilledCellPoses.push(thisPos.up());
+                    shouldBeFilledCellPoses.push(thisPos.down());
+                }
+                else {
+                    return false;
                 }
             }
         }
         else {
-            shouldBeEmptyPoses.add(placement.startPos.up());
-            shouldBeEmptyPoses.add(placement.startPos.down(word.length));
-
+            shouldBeEmptyCellPoses.push(placement.startPos.up());
+            shouldBeEmptyCellPoses.push(placement.startPos.down(word.length));
             for (let i = 0; i < word.length; i++) {
-                let thisPos: CellPos = placement.startPos.down(i);
-                if (!thisPos.isSameAs(connectionPos)) {
-                    mainPoses.push(thisPos);
-                    shouldBeEmptyPoses.add(thisPos.left());
-                    shouldBeEmptyPoses.add(thisPos.right());
+
+                const thisPos: CellPos = placement.startPos.down(i);
+
+                if (thisPos.isSameAs(connectionPos) || !this.#cellInRange(thisPos))
+                    continue;
+
+                const thisLetter: string = this.#getLetter(thisPos);
+                
+                if (thisLetter === ' ') { // needs to be nothing left or right
+                    shouldBeEmptyCellPoses.push(thisPos.left());
+                    shouldBeEmptyCellPoses.push(thisPos.right());
+                }
+                else if (thisLetter === word[i]) { // needs to be something left or right
+                    shouldBeFilledCellPoses.push(thisPos.left());
+                    shouldBeFilledCellPoses.push(thisPos.right());
+                }
+                else {
+                    return false;
                 }
             }
         }
 
-        let validWordPoses: Array<CellPos> = [];
-        let validShouldBeEmptyPoses: Set<CellPos> = new Set([]);
-
-        let numRows: number = this.#getNumRows();
-        for (const pos of mainPoses)
-            if (this.#getActualPos(pos).inRange(numRows, this.numCols))
-                validWordPoses.push(pos);
-
-        for (const pos of shouldBeEmptyPoses)
-            if (this.#getActualPos(pos).inRange(numRows, this.numCols))
-                validShouldBeEmptyPoses.add(pos);
-
-        return new CellsToCheck(validWordPoses, validShouldBeEmptyPoses);
-    }
-
-    #allCellsValidForPlacement(placement: WordPlacement, cellsToCheck: CellsToCheck): boolean {
-        for (const pos of cellsToCheck.shouldBeEmpty) {
-            if (this.#getLetter(pos) !== ' ')
+        for (const cell of shouldBeEmptyCellPoses) {
+            if (this.#cellInRange(cell) && this.#getLetter(cell) !== ' ') {
                 return false;
+            }
         }
-
-        for (let i = 0; i < cellsToCheck.forWord.length; i++) {
-            if (this.#getLetter(cellsToCheck.forWord[i]) !== this.words[placement.wordIndex] && this.#getLetter(cellsToCheck.forWord[i]) !== ' ')
+        for (const cell of shouldBeFilledCellPoses) {
+            if (this.#cellInRange(cell) && this.#getLetter(cell) === ' ') {
                 return false;
+            }
         }
 
         return true;
-    }
-
-    #placementIsValid(placement: WordPlacement, connectionPos: CellPos): boolean {
-        return this.#allCellsValidForPlacement(placement, this.#getCellsToCheck(placement, connectionPos));
     }
 
     #getWordCellPoses(placement: WordPlacement): Array<CellPos> {
@@ -252,11 +262,11 @@ class RandomBoard {
                     let possibleRightPlacement: WordPlacement = new WordPlacement(thisPos.left(letIndex), true, wordIndex);
                     let possibleDownPlacement: WordPlacement = new WordPlacement(thisPos.up(letIndex), false, wordIndex);
 
-                    if (this.#placementIsValid(possibleRightPlacement, thisPos)) {
+                    if (this.#placementValid(possibleRightPlacement, thisPos)) {
                         possiblePlacements.add(possibleRightPlacement);
                     }
 
-                    if (this.#placementIsValid(possibleDownPlacement, thisPos)) {
+                    if (this.#placementValid(possibleDownPlacement, thisPos)) {
                         possiblePlacements.add(possibleDownPlacement);
                     }
                 }
@@ -269,7 +279,11 @@ class RandomBoard {
     #getAdditionalRandomConnection() {
         let placements: Set<WordPlacement> = this.#getPossibleAddedRandomConnections();
 
-        return getRandomUniqueElement(Array.from(placements));
+        if (placements.size == 0)
+            console.log(this.getBoardLines(), Array.from(this.availableWordIndices).map((index: number) => this.words[index]));
+        let thisElement = getRandomUniqueElement(Array.from(placements));
+
+        return thisElement;
     }
 
     #addWordPlacement(placement: WordPlacement): void {

@@ -1,4 +1,3 @@
-import { useState } from "react";
 
 export class CellPos {
     row: number;
@@ -228,42 +227,6 @@ export function getAllCellData(heads: Array<WordHead>): Array<CellData> {
 
     return cellDatas;
 }
-
-// export function parseCrosswordInput(inputLines: Array<string>): Array<WordHead> {
-//   let heads: Array<WordHead> = [];
-
-//   let nextId: number = 1;
-
-//   for (const line of inputLines) {
-//     let parts: Array<string> = line.split(' ');
-
-//     let row: number = parseInt(parts[0]);
-//     let col: number = parseInt(parts[1]);
-//     let right: boolean = parts[2] == 'R'
-//     let word: string = parts[3];
-
-//     let thisCellPos: CellPos = new CellPos(row, col);
-
-//     let idToUse = nextId;
-
-//     let unique: boolean = true;
-
-//     for (const head of heads) {
-//       if (head.startPos.isSameAs(thisCellPos)) {
-//         idToUse = head.id;
-//         unique = false;
-//         break;
-//       }
-//     }
-
-//     heads.push(new WordHead(new CellPos(row, col), right, word, idToUse));
-
-//     if (unique)
-//       nextId++;
-//   }
-
-//   return heads;
-// }
 
 export function getCellPosesFromData(data: Array<CellData>): Array<CellPos> {
     let poses: Array<CellPos> = [];

@@ -71,13 +71,21 @@ function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
       gridTemplateAreas.push(newRow);
     }
 
-    const screenWidth: number = window.screen.availWidth - 50;
-    const screenHeight: number = window.screen.availHeight - 150;
+    const screenWidth: number = window.innerWidth - 50;
+    const screenHeight: number = window.innerHeight - 25;
 
     const cellWidthAccordingToWidth: number = screenWidth / totalRowsCols.col;
     const cellWidthAccordingToHeight: number = screenHeight / totalRowsCols.row;
 
     const cellWidth: number = Math.min(cellWidthAccordingToWidth, cellWidthAccordingToHeight);
+
+    // TODO: Fix screen width/height getting
+    console.log('other screen width', screen.width);
+    console.log('other avail width', screen.availWidth);
+    console.log('other other', window.innerWidth);
+    console.log('screen width', screenWidth);
+    console.log('cell width', cellWidth);
+    console.log('multiplied', cellWidth * totalRowsCols.col);
 
     for (let i = 0; i < cellDatas.length; i++) {
         let cellPos = cellDatas[i].pos;
