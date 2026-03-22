@@ -42,16 +42,6 @@ class WordPlacement {
     }
 }
 
-class CellsToCheck {
-    forWord: Array<CellPos>;
-    shouldBeEmpty: Set<CellPos>;
-
-    constructor(forWord: Array<CellPos>, shouldBeEmpty: Set<CellPos>) {
-        this.forWord = forWord;
-        this.shouldBeEmpty = shouldBeEmpty;
-    }
-}
-
 class RandomBoard {
     words: Array<string>;
     availableWordIndices: Set<number>;
