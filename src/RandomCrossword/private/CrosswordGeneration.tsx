@@ -1,5 +1,6 @@
-import {CellPos, WordLoc} from "../../Crossword/private/CrosswordUtils"
+import {CellPos, WordHead, WordInfo, WordLoc} from "../../Crossword/private/CrosswordUtils"
 import {getRandomUniqueElement, flipCoin, getIndicesOfCharInString, range} from "../../Utils/Utils"
+import { getMinWikiData, getNumRandomWordInfosFromCategories } from "./RandomCrosswordUtils";
 
 class ConnectionPartInfo {
     wordIndex: number;
@@ -53,7 +54,7 @@ class RandomBoard {
     // position of cell that is considered (0, 0) in relation to other cell poses
     origin: CellPos;
 
-    constructor(words: Array<string>) {
+    constructor(words: Array<string>, callback: () => void) {
         this.words = words;
         this.availableWordIndices = new Set<number>(range(words.length));
 
@@ -63,11 +64,18 @@ class RandomBoard {
 
         this.wordPlacements = [];
 
+        console.log('started');
+
         let initialConnection: WordConnectionInfo = this.#getInitialRandomConnection();
         this.#constructFromInitialConnection(initialConnection);
 
+        callback();
+        callback();
+
         while (this.availableWordIndices.size > 0) {
             this.#addAddedRandomConnection();
+            callback();
+            console.log('this added');
         }
     }
 
@@ -395,9 +403,28 @@ class RandomBoard {
 }
 
 
-export function generateCrossword(words: Array<string>): Array<WordLoc> { // return starting positions
+export async function generateRandomWordHeads(wikiURL: string, categoryNames: Array<string>, numAnswers: number, callback: () => void): Promise<Array<WordHead>> {
+    console.log('started started');
+  
+    let wordInfos: Array<WordInfo> = [];
 
-    let board: RandomBoard = new RandomBoard(words);
+    if (categoryNames.includes("All"))
+        wordInfos = await getMinWikiData(wikiURL, numAnswers);
+    else
+        wordInfos = await getNumRandomWordInfosFromCategories(wikiURL, categoryNames, numAnswers);
 
-    return board.getLocs();
+    let strs: Array<string> = [];
+    for (const info of wordInfos)
+        strs.push(info.word);
+
+    let board: RandomBoard = new RandomBoard(strs, callback);
+
+    let wordLocs: Array<WordLoc> = board.getLocs();
+
+    let heads: Array<WordHead> = [];
+    for (let i = 0; i < wordInfos.length; i++)
+        heads.push(new WordHead(wordLocs[i], wordInfos[i]));
+
+    
+    return heads;
 }

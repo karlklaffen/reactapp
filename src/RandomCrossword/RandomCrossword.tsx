@@ -2,7 +2,7 @@ import { useState, type JSX } from 'react'
 import {WordHead} from "../Crossword/private/CrosswordUtils"
 import {type WikiType, type WikiTypeData} from "./private/RandomCrosswordUtils"
 
-import {generateRandomWordHeads} from "./private/GenerateRandomWordHeads"
+import {generateRandomWordHeads} from "./private/CrosswordGeneration"
 
 import SmartSelection from '../Utils/SmartInputs/SmartSelection'
 import { SmartSelectionGroup, SmartSelectionProxy, SmartSelectionTypes, type SmartSelectionOption } from '../Utils/SmartInputs/SmartSelectionUtils'
@@ -17,6 +17,8 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
 
   const [wordHeads, setWordHeads] = useState<Array<WordHead>>([]);
 
+  const [numWordsGenerated, setNumWordsGenerated] = useState<number>(0);
+
   if (wikiTypes.length == 0)
     return <div>No Wikis to generate crossword</div>;
 
@@ -29,9 +31,15 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
       {crosswordJSX}
       <input type="button" value="Generate Crossword" disabled={generatingCrossword} onClick={async () => {
         setGeneratingCrossword(true);
-        setWordHeads(await generateRandomWordHeads(selectedWikiUrl, selectedCategoryNames, numAnswers));
+
+        setWordHeads(await generateRandomWordHeads(selectedWikiUrl, selectedCategoryNames, numAnswers, () => {
+          setNumWordsGenerated(numWordsGenerated + 1);
+          console.log('added 1');
+          console.log(numWordsGenerated);
+        }));
+
         setGeneratingCrossword(false);
-      }}/>
+      }}/> {numWordsGenerated} / {wordHeads.length}
       <p></p>
       Number of Answers:
       <br></br>

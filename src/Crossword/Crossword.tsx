@@ -3,30 +3,30 @@ import { isLetterKey } from '../Utils/Utils'
 import Cell from './private/Cell'
 import './private/Crossword.css'
 
-import {WordHead, WordCollection, SelectedCellInfo, CellData, getAllCellData, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getTotalRowsCols, getCellPosesFromData, CellPos, getIncrementedOrDecrementedSelectedCell} from "./private/CrosswordUtils"
+import {WordHead, CrosswordState, SelectedCellInfo, CellData, getAllCellData, cellPosIsSameAsSelectedCell, getPriorityCellInfoForCellPos, getTotalRowsCols, getCellPosesFromData, CellPos, getIncrementedOrDecrementedSelectedCell} from "./private/CrosswordUtils"
 import {useState, useEffect, type JSX} from "react"
 
 function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
 
-  // selected cell
-  const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedCellInfo>(new SelectedCellInfo(0, 0));
+    // selected cell
+    const [selectedCellInfo, setSelectedCellInfo] = useState<SelectedCellInfo>(new SelectedCellInfo(0, 0));
   
-  // cell data
-  const [cellDatas, setCellDatas] = useState<Array<CellData>>([]);
+    // cell data
+    const [cellDatas, setCellDatas] = useState<Array<CellData>>([]);
 
-  // update cell data when word collection changes
-  useEffect(() => {
-      setSelectedCellInfo(new SelectedCellInfo(0, 0));
-      setCellDatas(getAllCellData(wordCollection.heads))
+    let crosswordState: CrosswordState = new CrosswordState(wordHeads, cellDatas);
+
+    // update cell data when word heads change
+    useEffect(() => {
+        setSelectedCellInfo(new SelectedCellInfo(0, 0));
+        setCellDatas(getAllCellData(crosswordState.heads))
   
-  }, [wordHeads]);
-
-  let wordCollection: WordCollection = new WordCollection(wordHeads);
+    }, [wordHeads]);
 
     useKeyListener((e: KeyboardEvent) => {
 
         if (e.key === 'Enter') {
-            setSelectedCellInfo(new SelectedCellInfo((selectedCellInfo.headIndex + 1) % wordCollection.heads.length, 0));
+            setSelectedCellInfo(new SelectedCellInfo((selectedCellInfo.headIndex + 1) % crosswordState.heads.length, 0));
             return;
         }
 
@@ -42,15 +42,15 @@ function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
                 const newCellDatas: Array<CellData> = curDatas.map((c) => {
 
                     // If this cell is selected
-                    if (cellPosIsSameAsSelectedCell(c.pos, wordCollection.heads, selectedCellInfo)) {
-                        return new CellData(c.pos, newLetter);
+                    if (cellPosIsSameAsSelectedCell(c.pos, crosswordState.heads, selectedCellInfo)) {
+                        return new CellData(c.pos, newLetter, c.headRefs);
                     }
                     return c;
                 });
                 return newCellDatas;
             });
 
-            setSelectedCellInfo(getIncrementedOrDecrementedSelectedCell(newLetter !== '', selectedCellInfo, wordCollection.heads));
+            setSelectedCellInfo(getIncrementedOrDecrementedSelectedCell(newLetter !== '', selectedCellInfo, crosswordState.heads));
         }
 
     }, [selectedCellInfo])
@@ -91,15 +91,15 @@ function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
         let cellPos = cellDatas[i].pos;
         let idStr: string = cellPos.getCellId();
 
-        let headNum: number = wordCollection.getCellHeadNumber(cellPos);
+        let headNum: number = crosswordState.getCellHeadNumber(cellPos);
 
         const gridClickFunc = () => {
-            let newSelectedCellInfo = getPriorityCellInfoForCellPos(cellPos, wordCollection.heads, selectedCellInfo);
+            let newSelectedCellInfo = getPriorityCellInfoForCellPos(cellPos, crosswordState.heads, selectedCellInfo);
             setSelectedCellInfo(newSelectedCellInfo);
         }
 
-        let selected = cellPosIsSameAsSelectedCell(cellPos, wordCollection.heads, selectedCellInfo);
-        let inSameWord = wordCollection.heads[selectedCellInfo.headIndex].getOffsetNum(cellPos) != null;
+        let selected = cellPosIsSameAsSelectedCell(cellPos, crosswordState.heads, selectedCellInfo);
+        let inSameWord = crosswordState.heads[selectedCellInfo.headIndex].getOffsetNum(cellPos) != null;
 
         let thisElement: JSX.Element = 
           <Cell letter={cellDatas[i].letter} idStr={idStr} headNum={headNum} selected={selected} inSameWord={inSameWord} func={gridClickFunc} width = {cellWidth} key={idStr}/>;
@@ -129,10 +129,10 @@ function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
     let downs: Array<JSX.Element> = [];
     let rights: Array<JSX.Element> = [];
 
-    for (let i = 0; i < wordCollection.heads.length; i++) {
-        let arrayToAppend = wordCollection.heads[i].loc.right ? rights : downs;
+    for (let i = 0; i < crosswordState.heads.length; i++) {
+        let arrayToAppend = crosswordState.heads[i].loc.right ? rights : downs;
 
-        let displayStr: string = `${wordCollection.ids[i]}. ${wordCollection.heads[i].info.clue}`;
+        let displayStr: string = `${crosswordState.correctHeadIndices[i] ? '✅' : '☐'} ${crosswordState.ids[i]}. ${crosswordState.heads[i].info.clue}`;
         arrayToAppend.push(<p key={displayStr} className={selectedCellInfo.headIndex == i ? "highlighted-clue" : ""}>{displayStr}</p>);
     }
 

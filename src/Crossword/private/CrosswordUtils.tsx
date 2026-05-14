@@ -63,13 +63,25 @@ export class CellPos {
     }
 }
 
+export class HeadLetterRef {
+    headIndex: number;
+    letterIndex: number;
+
+    constructor(headIndex: number, letterIndex: number) {
+        this.headIndex = headIndex;
+        this.letterIndex = letterIndex;
+    }
+}
+
 export class CellData {
     pos: CellPos;
     letter: string;
+    headRefs: Array<HeadLetterRef>;
 
-    constructor(pos: CellPos, letter: string) {
+    constructor(pos: CellPos, letter: string, headRefs: Array<HeadLetterRef>) {
         this.pos = pos;
         this.letter = letter;
+        this.headRefs = headRefs;
     }
 }
 
@@ -124,11 +136,12 @@ export class WordHead {
     }
 }
 
-export class WordCollection {
+export class CrosswordState {
     heads: Array<WordHead>
     ids: Array<number>
+    correctHeadIndices: Array<boolean>
 
-    constructor(heads: Array<WordHead>) {
+    constructor(heads: Array<WordHead>, cellDatas: Array<CellData>) {
 
         // TODO: Make it so that this doesn't sort in place and affect heads parameter
         this.heads = heads.sort((a: WordHead, b: WordHead) => {
@@ -153,8 +166,19 @@ export class WordCollection {
                 thisId++;
             }
         }
+
+        this.correctHeadIndices = new Array<boolean>(heads.length).fill(true);
+
+        for (const cellData of cellDatas) {
+            for (const ref of cellData.headRefs) {
+                if (heads[ref.headIndex].info.word[ref.letterIndex] !== cellData.letter) {
+                    this.correctHeadIndices[ref.headIndex] = false;
+                }
+            }
+        }
     }
 
+    // returns 0 if this is not a head cell
     getCellHeadNumber(cellPos: CellPos): number {
         for (let i = 0; i < this.heads.length; i++) {
             if (this.heads[i].loc.startPos.isSameAs(cellPos))
@@ -189,8 +213,37 @@ export function gridClickCallback(pos: CellPos) {
         element.style.backgroundColor = 'gold';
 }
 
-export function getAllCellPoses(heads: Array<WordHead>): Array<CellPos> {
-    let poses: Array<CellPos> = [];
+// export function getAllCellPoses(heads: Array<WordHead>): Array<CellPos> {
+//     let poses: Array<CellPos> = [];
+
+//     for (let i = 0; i < heads.length; i++) {
+        
+//         for (let j = 0; j < heads[i].info.word.length; j++) {
+
+//             let thisCellPos: CellPos = heads[i].loc.getOffsetPos(j);
+
+//             let unique: boolean = true;
+
+//             for (const otherCellPos of poses) {
+
+//                 if (thisCellPos.isSameAs(otherCellPos)) {
+//                 unique = false;
+//                 break;
+//                 }
+//             }
+
+//             if (unique) {
+//                 poses.push(thisCellPos);
+//             }
+//         }
+//     }
+
+//     return poses;
+// }
+
+export function getAllCellData(heads: Array<WordHead>): Array<CellData> {
+
+    let datas: Array<CellData> = [];
 
     for (let i = 0; i < heads.length; i++) {
         
@@ -200,32 +253,22 @@ export function getAllCellPoses(heads: Array<WordHead>): Array<CellPos> {
 
             let unique: boolean = true;
 
-            for (const otherCellPos of poses) {
+            for (const otherCellData of datas) {
 
-                if (thisCellPos.isSameAs(otherCellPos)) {
-                unique = false;
-                break;
+                if (thisCellPos.isSameAs(otherCellData.pos)) {
+                    otherCellData.headRefs.push(new HeadLetterRef(i, j));
+                    unique = false;
+                    break;
                 }
             }
 
             if (unique) {
-                poses.push(thisCellPos);
+                datas.push(new CellData(thisCellPos, ' ', [new HeadLetterRef(i, j)]));
             }
         }
     }
 
-    return poses;
-}
-
-export function getAllCellData(heads: Array<WordHead>): Array<CellData> {
-    let cellPoses: Array<CellPos> = getAllCellPoses(heads);
-    
-    let cellDatas: Array<CellData> = [];
-
-    for (let i = 0; i < cellPoses.length; i++)
-        cellDatas.push(new CellData(cellPoses[i], ''))
-
-    return cellDatas;
+    return datas;
 }
 
 export function getCellPosesFromData(data: Array<CellData>): Array<CellPos> {
