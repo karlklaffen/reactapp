@@ -1,5 +1,5 @@
 import { useKeyListener } from '../Utils/Hooks'
-import { isLetterKey } from '../Utils/Utils'
+import { isLetterKey, mod } from '../Utils/Utils'
 import Cell from './private/Cell'
 import './private/Crossword.css'
 
@@ -26,7 +26,8 @@ function Crossword({wordHeads}: {wordHeads: Array<WordHead>}) {
     useKeyListener((e: KeyboardEvent) => {
 
         if (e.key === 'Enter') {
-            setSelectedCellInfo(new SelectedCellInfo((selectedCellInfo.headIndex + 1) % crosswordState.heads.length, 0));
+            setSelectedCellInfo(new SelectedCellInfo(mod(selectedCellInfo.headIndex + (e.shiftKey ? -1 : 1), crosswordState.heads.length), 0));
+            console.log("AAAA", (selectedCellInfo.headIndex - 1) % crosswordState.heads.length);
             return;
         }
 

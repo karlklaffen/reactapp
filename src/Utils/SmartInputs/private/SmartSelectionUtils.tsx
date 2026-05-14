@@ -1,5 +1,5 @@
 import {type JSX} from "react"
-import { allInArray, arraysContainSameElems, arrayElementsUnique } from "../Utils";
+import { allInArray, arraysContainSameElems, arrayElementsUnique } from "../../Utils";
 
 export type SmartSelectionOption<T> = {
     

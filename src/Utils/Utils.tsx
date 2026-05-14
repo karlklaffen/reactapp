@@ -241,3 +241,7 @@ export function arraysContainSameElems<T>(first: Array<T>, second: Array<T>) {
 export function arrayElementsUnique<T>(arr: Array<T>): boolean {
     return (new Set(arr)).size === arr.length;
 }
+
+export function mod(n: number, m: number): number {
+    return ((n % m) + m) % m;
+}

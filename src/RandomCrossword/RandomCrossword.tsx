@@ -5,7 +5,7 @@ import {type WikiType, type WikiTypeData} from "./private/RandomCrosswordUtils"
 import {generateRandomWordHeads} from "./private/CrosswordGeneration"
 
 import SmartSelection from '../Utils/SmartInputs/SmartSelection'
-import { SmartSelectionGroup, SmartSelectionProxy, SmartSelectionTypes, type SmartSelectionOption } from '../Utils/SmartInputs/SmartSelectionUtils'
+import { SmartSelectionGroup, SmartSelectionProxy, SmartSelectionTypes, type SmartSelectionOption } from '../Utils/SmartInputs/private/SmartSelectionUtils'
 import Crossword from '../Crossword/Crossword'
 
 function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wikiTypes: Array<WikiType>, minNumAnswers: number, maxNumAnswers: number}): JSX.Element {
@@ -34,15 +34,14 @@ function RandomCrosswordHandler({wikiTypes, minNumAnswers, maxNumAnswers}: {wiki
 
         setWordHeads(await generateRandomWordHeads(selectedWikiUrl, selectedCategoryNames, numAnswers, () => {
           setNumWordsGenerated(numWordsGenerated + 1);
-          console.log('added 1');
-          console.log(numWordsGenerated);
         }));
 
         setGeneratingCrossword(false);
-      }}/> {numWordsGenerated} / {wordHeads.length}
-      <p></p>
+      }}/>
+      {/* TODO: PUT LOADING STUFF */}
+      <p />
       Number of Answers:
-      <br></br>
+      <br />
       <label>
         <input type="range" defaultValue={numAnswers} min={minNumAnswers} max={maxNumAnswers} onChange={(e: any) => {
           setNumAnswers(e.target.value);

@@ -1,6 +1,6 @@
 import {type JSX, useState, useEffect} from "react"
 
-import { SmartSelectionGroup } from "./SmartSelectionUtils"
+import { SmartSelectionGroup } from "./private/SmartSelectionUtils"
 
 function SmartSelection<T>({group}: {group: SmartSelectionGroup<T>}): JSX.Element {
     
